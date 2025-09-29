@@ -1,21 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Battery, Signal, Wifi, Volume2 } from 'lucide-react';
-import { useRouter } from 'next/router';
 import { useWordData } from '@/hooks/useWordData';
+import { useLearningSession } from '@/src/context/LearningSessionContext';
+import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
 
 export default function Component() {
   const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
-  const { word, loading, error } = useWordData();
-  const router = useRouter();
+  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
+  const { word, loading, error } = useWordData({ initialWordId: learningSession.wordId ?? undefined });
+  const { previous, next, goTo } = useLearningNavigation('sentence');
 
   const playAudio = (id: string) => {
     setAudioPlaying(id);
     setTimeout(() => setAudioPlaying(null), 1000);
   };
 
-  const handleContinue = () => {
-    router.push('/exercise');
+  useEffect(() => {
+    updateLearningSession({ module: 'sentence' });
+  }, [updateLearningSession]);
+
+  useEffect(() => {
+    if (word) {
+      updateLearningSession({ wordId: word.id, word: word.hanzi });
+    }
+  }, [word, updateLearningSession]);
+
+  const handleNavigate = (direction: 'previous' | 'next') => {
+    const target = direction === 'previous' ? previous : next;
+    if (!target) return;
+    goTo(target.key);
   };
 
   const mainExample = word?.examples?.[0];
@@ -78,12 +92,23 @@ export default function Component() {
           </div>
         </div>
 
-        <Button
-          onClick={handleContinue}
-          className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-base rounded-lg mt-3"
-        >
-          CONTINUE
-        </Button>
+        <div className="flex gap-2 mt-3">
+          <Button
+            variant="outline"
+            className="flex-1"
+            disabled={!previous}
+            onClick={() => handleNavigate('previous')}
+          >
+            返回{previous ? ` · ${previous.label}` : ''}
+          </Button>
+          <Button
+            className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+            disabled={!next}
+            onClick={() => handleNavigate('next')}
+          >
+            前往{next ? ` · ${next.label}` : ''}
+          </Button>
+        </div>
       </div>
     );
   };
@@ -106,7 +131,28 @@ export default function Component() {
 
             <div className="h-full pt-6 pb-4 flex flex-col">
               <div className="bg-orange-200 p-3">
-                <h1 className="text-lg font-semibold">sentence learning</h1>
+                <div className="flex justify-between items-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!previous}
+                    onClick={() => handleNavigate('previous')}
+                  >
+                    ← {previous ? previous.label : '上一模块'}
+                  </Button>
+                  <h1 className="text-lg font-semibold">sentence learning</h1>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!next}
+                    onClick={() => handleNavigate('next')}
+                  >
+                    {next ? next.label : '结束'} →
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-700 mt-1">
+                  当前模块：{resolveModuleLabel('sentence')}
+                </p>
               </div>
               {renderBody()}
             </div>

@@ -8,6 +8,7 @@ import { fetchWordExercises } from '@/src/lib/apiClient';
 import type { ExerciseQuestionPayload } from '@/src/lib/types';
 import { useLearningContext } from '@/src/context/LearningContext';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
+import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
 
 const DEFAULT_WORD_ID = 1;
 const DEFAULT_WORD_NAME = '发生';
@@ -16,6 +17,11 @@ type ExerciseType = ExerciseQuestionPayload['type'];
 type ExerciseQuestion = ExerciseQuestionPayload;
 
 const Exercise = () => {
+  const { userId } = useLearningContext();
+  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
+  const initialWordId = learningSession.wordId ?? DEFAULT_WORD_ID;
+  const initialWordLabel = learningSession.word ?? DEFAULT_WORD_NAME;
+  const { previous, next, goTo } = useLearningNavigation('exercise');
   const [exerciseQuestions, setExerciseQuestions] = useState<ExerciseQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<ExerciseQuestion | null>(null);
   const [selectedOption, setSelectedOption] = useState('');
@@ -24,13 +30,11 @@ const Exercise = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
   const [sessionStartTime] = useState(new Date());
-  const [wordId, setWordId] = useState(() => learningSession.wordId ?? DEFAULT_WORD_ID);
-  const [wordLabel, setWordLabel] = useState(() => learningSession.word ?? DEFAULT_WORD_NAME);
+  const [wordId, setWordId] = useState(initialWordId);
+  const [wordLabel, setWordLabel] = useState(initialWordLabel);
   const [wordDefinition, setWordDefinition] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userId } = useLearningContext();
-  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
 
   const {
     pageTracking,
@@ -334,12 +338,39 @@ const Exercise = () => {
 
             {/* Content */}
             <div className="h-full pt-6 pb-4 flex flex-col">
-              <div className="bg-orange-200 p-3">
-                <h1 className="text-lg font-semibold">词汇练习 · {wordLabel}</h1>
-                <p className="text-xs text-gray-600 truncate">{wordDefinition}</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {getQuestionTypeTitle(currentQuestion.type)} ({questionIndex + 1}/{exerciseQuestions.length})
+              <div className="bg-orange-200 p-3 space-y-1">
+                <div className="flex justify-between items-center">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!previous}
+                    onClick={() => {
+                      if (!previous) return;
+                      trackEvent('nav_previous', 'navigation', { targetModule: previous.key });
+                      goTo(previous.key);
+                    }}
+                  >
+                    ← {previous ? previous.label : '上一模块'}
+                  </Button>
+                  <h1 className="text-lg font-semibold">词汇练习</h1>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!next}
+                    onClick={() => {
+                      if (!next) return;
+                      trackEvent('nav_next', 'navigation', { targetModule: next.key });
+                      goTo(next.key);
+                    }}
+                  >
+                    {next ? next.label : '结束'} →
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-600 truncate">当前词汇：{wordLabel}</p>
+                <p className="text-[11px] text-gray-600">
+                  模块：{resolveModuleLabel('exercise')} · {getQuestionTypeTitle(currentQuestion.type)} ({questionIndex + 1}/{exerciseQuestions.length})
                 </p>
+                <p className="text-[11px] text-gray-500 truncate">{wordDefinition}</p>
               </div>
               
               <div className="flex-1 p-3 flex flex-col justify-between overflow-y-auto">
