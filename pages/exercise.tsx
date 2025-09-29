@@ -6,10 +6,10 @@ import { Battery, Signal, Wifi, Volume2 } from 'lucide-react';
 import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
 import { fetchWordExercises } from '@/src/lib/apiClient';
 import type { ExerciseQuestionPayload } from '@/src/lib/types';
+import { useLearningContext } from '@/src/context/LearningContext';
 
 const DEFAULT_WORD_ID = 1;
 const DEFAULT_WORD_NAME = '发生';
-const DEFAULT_USER_ID = 'user123';
 
 type ExerciseType = ExerciseQuestionPayload['type'];
 type ExerciseQuestion = ExerciseQuestionPayload;
@@ -28,6 +28,7 @@ const Exercise = () => {
   const [wordDefinition, setWordDefinition] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { userId } = useLearningContext();
 
   const {
     pageTracking,
@@ -39,7 +40,7 @@ const Exercise = () => {
     updateConfig,
     sessionInfo
   } = useComprehensiveTracking({
-    userId: DEFAULT_USER_ID,
+    userId,
     wordId,
     moduleType: 'exercise',
     sessionType: 'exercise'
@@ -54,6 +55,8 @@ const Exercise = () => {
     startTime: questionStartTime
   } = exerciseTimer;
 
+  const scopedKey = useCallback((key: string) => `learning:${userId}:${key}`, [userId]);
+
   const loadExercises = useCallback(async (targetWordId: number, overrideLabel?: string | null) => {
     setLoading(true);
     setError(null);
@@ -67,7 +70,8 @@ const Exercise = () => {
       }
 
       setWordId(data.wordId);
-      setWordLabel(overrideLabel ?? data.word ?? DEFAULT_WORD_NAME);
+      const effectiveWordLabel = overrideLabel ?? data.word ?? DEFAULT_WORD_NAME;
+      setWordLabel(effectiveWordLabel);
       setWordDefinition(data.definition ?? '');
       setExerciseQuestions(normalizedQuestions);
       setQuestionIndex(0);
@@ -76,6 +80,11 @@ const Exercise = () => {
       setShowFeedback(false);
       setIsCorrect(false);
       updateConfig({ wordId: data.wordId });
+
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(scopedKey('currentWordId'), String(data.wordId));
+        window.localStorage.setItem(scopedKey('currentWord'), effectiveWordLabel);
+      }
 
       trackEvent('exercise_data_loaded', 'exercise', {
         wordId: data.wordId,
@@ -106,20 +115,25 @@ const Exercise = () => {
     let storedWordLabel: string | null = DEFAULT_WORD_NAME;
 
     if (typeof window !== 'undefined') {
-      const rawWordId = window.localStorage.getItem('currentWordId');
+      const rawWordId = window.localStorage.getItem(scopedKey('currentWordId'));
       const parsedWordId = rawWordId ? parseInt(rawWordId, 10) : NaN;
       if (!Number.isNaN(parsedWordId) && parsedWordId > 0) {
         storedWordId = parsedWordId;
       }
-      const storedWord = window.localStorage.getItem('currentWord');
+      const storedWord = window.localStorage.getItem(scopedKey('currentWord'));
       if (storedWord) {
         storedWordLabel = storedWord;
         setWordLabel(storedWord);
       }
     }
 
+    setWordId(storedWordId);
     loadExercises(storedWordId, storedWordLabel);
-  }, [loadExercises]);
+  }, [loadExercises, scopedKey]);
+
+  useEffect(() => {
+    updateConfig({ userId });
+  }, [updateConfig, userId]);
 
   useEffect(() => {
     if (!exerciseQuestions.length) {

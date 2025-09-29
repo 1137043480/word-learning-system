@@ -6,10 +6,10 @@ import { Battery, Signal, Wifi } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
 import { buildApiUrl } from '@/src/lib/apiClient';
+import { useLearningContext } from '@/src/context/LearningContext';
 
 const DEFAULT_WORD_ID = 1;
 const DEFAULT_WORD_NAME = '发生';
-const USER_ID = 'user123';
 
 const moduleRouteMap: Record<string, { path: string; label: string }> = {
   character: { path: '/character-learning', label: '字学习' },
@@ -49,31 +49,41 @@ export default function Component() {
   const [recommendationMessage, setRecommendationMessage] = useState<string | null>(null);
   const [recommendationError, setRecommendationError] = useState<string | null>(null);
   const router = useRouter();
+  const { userId } = useLearningContext();
 
   const tracking = useComprehensiveTracking({
-    userId: USER_ID,
+    userId,
     wordId: DEFAULT_WORD_ID,
     moduleType: 'entrance',
     sessionType: 'learning'
   });
 
+  const { pageTracking, interactionTracking, trackEvent, updateConfig, endSession } = tracking;
+  const { trackPageEnter, trackPageLeave, trackNavigation } = pageTracking;
+  const { trackSelectionChange, trackButtonClick } = interactionTracking;
+
   useEffect(() => {
-    tracking.pageTracking.trackPageEnter('word-learning-entrance');
-    tracking.trackEvent('vks_test_start', 'entrance', {
+    updateConfig({ userId });
+  }, [userId, updateConfig]);
+
+  useEffect(() => {
+    trackPageEnter('word-learning-entrance');
+    trackEvent('vks_test_start', 'entrance', {
       word: DEFAULT_WORD_NAME,
-      startTime: pageStartTime.toISOString()
+      startTime: pageStartTime.toISOString(),
+      userId
     });
 
     return () => {
-      tracking.pageTracking.trackPageLeave('word-learning-entrance');
+      trackPageLeave('word-learning-entrance');
     };
-  }, []);
+  }, [trackEvent, trackPageEnter, trackPageLeave, userId, pageStartTime]);
 
   const handleOptionChange = (value: string) => {
-    tracking.interactionTracking.trackSelectionChange('vks-level', selectedOption, value);
+    trackSelectionChange('vks-level', selectedOption, value);
 
     if (selectedOption && selectedOption !== value) {
-      tracking.trackEvent('option_change', 'vks-radio', {
+      trackEvent('option_change', 'vks-radio', {
         from: selectedOption,
         to: value,
         hesitation: true
@@ -94,13 +104,13 @@ export default function Component() {
   ];
 
   const handleContinue = async () => {
-    tracking.interactionTracking.trackButtonClick('continue-button', 'CONTINUE', {
+    trackButtonClick('continue-button', 'CONTINUE', {
       selectedOption,
       timeToDecision: Date.now() - pageStartTime.getTime()
     });
 
     if (!selectedOption) {
-      tracking.trackEvent('validation_error', 'continue-button', {
+      trackEvent('validation_error', 'continue-button', {
         error: 'no_option_selected'
       });
       alert('请先选择一个选项');
@@ -127,74 +137,78 @@ export default function Component() {
     };
 
     try {
-      const url = `${buildApiUrl(`/api/adaptive/recommendation/${USER_ID}`)}?context=${encodeURIComponent(JSON.stringify(context))}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        cache: 'no-cache'
-      });
+      try {
+        const url = `${buildApiUrl(`/api/adaptive/recommendation/${userId}`)}?context=${encodeURIComponent(JSON.stringify(context))}`;
+        const response = await fetch(url, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          const data = result.data;
-          resolvedWordId = data.word_id ?? data.wordId ?? DEFAULT_WORD_ID;
-          resolvedWord = data.word ?? resolvedWord;
-          resolvedModule = resolveModuleRoute(data.recommended_module ?? data.recommendedModule ?? data.type, selectedLearning.path, selectedLearning.label);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            const data = result.data;
+            resolvedWordId = data.word_id ?? data.wordId ?? DEFAULT_WORD_ID;
+            resolvedWord = data.word ?? resolvedWord;
+            resolvedModule = resolveModuleRoute(data.recommended_module ?? data.recommendedModule ?? data.type, selectedLearning.path, selectedLearning.label);
 
-          tracking.trackEvent('recommendation_received', 'entrance', {
-            recommendationId: data.recommendationId,
-            type: data.type,
-            recommendedModule: resolvedModule.moduleKey,
-            wordId: resolvedWordId,
-            word: resolvedWord,
-            reason: data.reason,
-            confidence: data.confidence
-          });
+            trackEvent('recommendation_received', 'entrance', {
+              recommendationId: data.recommendationId,
+              type: data.type,
+              recommendedModule: resolvedModule.moduleKey,
+              wordId: resolvedWordId,
+              word: resolvedWord,
+              reason: data.reason,
+              confidence: data.confidence
+            });
 
-          setRecommendationMessage(`推荐模块：${resolvedModule.label}（词汇：${resolvedWord}）`);
+            setRecommendationMessage(`推荐模块：${resolvedModule.label}（词汇：${resolvedWord}）`);
+          } else {
+            const message = result.error || '推荐服务未返回结果，使用默认路径';
+            setRecommendationError(message);
+            trackEvent('recommendation_failed', 'entrance', {
+              error: message,
+              response: result
+            });
+          }
         } else {
-          const message = result.error || '推荐服务未返回结果，使用默认路径';
+          const message = `推荐接口返回错误：HTTP ${response.status}`;
           setRecommendationError(message);
-          tracking.trackEvent('recommendation_failed', 'entrance', {
-            error: message,
-            response: result
+          trackEvent('recommendation_failed', 'entrance', {
+            error: message
           });
         }
-      } else {
-        const message = `推荐接口返回错误：HTTP ${response.status}`;
-        setRecommendationError(message);
-        tracking.trackEvent('recommendation_failed', 'entrance', {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        setRecommendationError(`推荐接口调用失败：${message}`);
+        trackEvent('recommendation_failed', 'entrance', {
           error: message
         });
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      setRecommendationError(`推荐接口调用失败：${message}`);
-      tracking.trackEvent('recommendation_failed', 'entrance', {
-        error: message
+
+      trackEvent('vks_test_complete', 'entrance', {
+        selectedLevel: selectedOption,
+        selectedPath: selectedLearning.path,
+        resolvedPath: resolvedModule.path,
+        resolvedModule: resolvedModule.moduleKey,
+        decisionTime: Date.now() - pageStartTime.getTime(),
+        totalTime: Date.now() - pageStartTime.getTime(),
+        userId
       });
+
+      updateConfig({ wordId: resolvedWordId, moduleType: resolvedModule.moduleKey });
+
+      const scopedKey = (key: string) => `learning:${userId}:${key}`;
+      localStorage.setItem(scopedKey('learningLevel'), selectedOption);
+      localStorage.setItem(scopedKey('currentWord'), resolvedWord);
+      localStorage.setItem(scopedKey('currentWordId'), String(resolvedWordId));
+
+      await endSession(true);
+      trackNavigation('word-learning-entrance', resolvedModule.path);
+      router.push(resolvedModule.path);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    tracking.trackEvent('vks_test_complete', 'entrance', {
-      selectedLevel: selectedOption,
-      selectedPath: selectedLearning.path,
-      resolvedPath: resolvedModule.path,
-      resolvedModule: resolvedModule.moduleKey,
-      decisionTime: Date.now() - pageStartTime.getTime(),
-      totalTime: Date.now() - pageStartTime.getTime()
-    });
-
-    tracking.updateConfig({ wordId: resolvedWordId, moduleType: resolvedModule.moduleKey });
-
-    localStorage.setItem('learningLevel', selectedOption);
-    localStorage.setItem('currentWord', resolvedWord);
-    localStorage.setItem('currentWordId', String(resolvedWordId));
-
-    await tracking.endSession(true);
-    tracking.pageTracking.trackNavigation('word-learning-entrance', resolvedModule.path);
-
-    setIsSubmitting(false);
-    router.push(resolvedModule.path);
   };
 
   return (
