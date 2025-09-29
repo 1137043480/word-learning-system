@@ -17,7 +17,7 @@ const UserSwitcher: React.FC = () => {
   const [panelOpen, setPanelOpen] = useState(false);
   const [customUserId, setCustomUserId] = useState(userId);
   const [apiInput, setApiInput] = useState(apiBaseUrl);
-  const [recentContext, setRecentContext] = useState<Record<string, { word?: string | null; level?: string | null }>>({});
+  const [recentContext, setRecentContext] = useState<Record<string, { word?: string | null; vksLevel?: string | null; module?: string | null; updatedAt?: string | null }>>({});
 
   useEffect(() => {
     setCustomUserId(userId);
@@ -31,11 +31,24 @@ const UserSwitcher: React.FC = () => {
     if (!panelOpen || typeof window === 'undefined') {
       return;
     }
-    const next: Record<string, { word?: string | null; level?: string | null }> = {};
+    const next: Record<string, { word?: string | null; vksLevel?: string | null; module?: string | null; updatedAt?: string | null }> = {};
     availableUsers.forEach(user => {
-      const word = window.localStorage.getItem(`learning:${user.userId}:currentWord`);
-      const level = window.localStorage.getItem(`learning:${user.userId}:learningLevel`);
-      next[user.userId] = { word, level };
+      try {
+        const raw = window.localStorage.getItem(`learningSession:${user.userId}`);
+        if (!raw) {
+          next[user.userId] = {};
+          return;
+        }
+        const parsed = JSON.parse(raw) as { word?: string | null; module?: string | null; vksLevel?: string | null; lastUpdated?: string | null };
+        next[user.userId] = {
+          word: parsed?.word ?? null,
+          module: parsed?.module ?? null,
+          vksLevel: parsed?.vksLevel ?? null,
+          updatedAt: parsed?.lastUpdated ?? null
+        };
+      } catch (error) {
+        next[user.userId] = {};
+      }
     });
     setRecentContext(next);
   }, [availableUsers, panelOpen]);
@@ -54,15 +67,36 @@ const UserSwitcher: React.FC = () => {
     await refreshUsers();
   };
 
+  const moduleLabelMap: Record<string, string> = {
+    character: '字学习',
+    word: '词学习',
+    word_learning: '词学习',
+    collocation: '搭配学习',
+    collocation_learning: '搭配学习',
+    sentence: '例句学习',
+    sentence_learning: '例句学习',
+    exercise: '练习',
+    review: '复习',
+    urgent_review: '紧急复习',
+    scheduled_review: '计划复习'
+  };
+
+  const resolveModuleLabel = (module?: string | null) => {
+    if (!module) {
+      return null;
+    }
+    return moduleLabelMap[module.toLowerCase()] ?? module;
+  };
+
   const userOptions = useMemo(() => {
     return availableUsers.map(user => {
       const localContext = recentContext[user.userId];
       const lastSession = user.lastSession;
       const subtitle = lastSession?.word || localContext?.word;
-      const moduleType = lastSession?.moduleType;
-      const level = localContext?.level;
+      const moduleType = resolveModuleLabel(lastSession?.moduleType || localContext?.module);
+      const level = localContext?.vksLevel;
       const stats = typeof user.wordsStudied === 'number' ? user.wordsStudied : undefined;
-      const lastStudiedAt = lastSession?.startedAt || user.lastStudied;
+      const lastStudiedAt = lastSession?.startedAt || localContext?.updatedAt || user.lastStudied;
 
       return {
         value: user.userId,
@@ -150,11 +184,7 @@ const UserSwitcher: React.FC = () => {
               <p className="text-xs font-semibold text-gray-500">近期上下文</p>
               <div className="max-h-40 overflow-y-auto space-y-2">
                 {userOptions.map(option => {
-                  const subtitle = option.subtitle;
-                  const level = option.level;
-                  const stats = option.stats;
-                  const moduleType = option.moduleType;
-                  const lastStudiedAt = option.lastStudiedAt;
+                  const { subtitle, level, stats, moduleType, lastStudiedAt } = option;
                   if (!subtitle && !level && !moduleType && !lastStudiedAt && (typeof stats !== 'number' || stats === 0)) {
                     return null;
                   }

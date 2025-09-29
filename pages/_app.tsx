@@ -3,12 +3,15 @@ import '../styles/globals.css';
 import { AppProps } from 'next/app';
 import UserSwitcher from '@/components/UserSwitcher';
 import { LearningProvider } from '@/src/context/LearningContext';
+import { LearningSessionProvider } from '@/src/context/LearningSessionContext';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <LearningProvider>
-      <Component {...pageProps} />
-      <UserSwitcher />
+      <LearningSessionProvider>
+        <Component {...pageProps} />
+        <UserSwitcher />
+      </LearningSessionProvider>
     </LearningProvider>
   );
 }

@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
 import { buildApiUrl } from '@/src/lib/apiClient';
 import { useLearningContext } from '@/src/context/LearningContext';
+import { useLearningSession } from '@/src/context/LearningSessionContext';
 
 const DEFAULT_WORD_ID = 1;
 const DEFAULT_WORD_NAME = '发生';
@@ -43,7 +44,9 @@ const resolveModuleRoute = (moduleName: string | undefined, fallbackPath: string
 };
 
 export default function Component() {
-  const [selectedOption, setSelectedOption] = useState('');
+  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
+
+  const [selectedOption, setSelectedOption] = useState(learningSession.vksLevel ?? '');
   const [pageStartTime] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recommendationMessage, setRecommendationMessage] = useState<string | null>(null);
@@ -52,6 +55,14 @@ export default function Component() {
   const { userId, availableUsers } = useLearningContext();
 
   const currentUser = useMemo(() => availableUsers.find(user => user.userId === userId), [availableUsers, userId]);
+
+  const activeModuleLabel = useMemo(() => {
+    if (!learningSession.module) {
+      return null;
+    }
+    const key = learningSession.module.toLowerCase();
+    return moduleRouteMap[key]?.label ?? learningSession.module;
+  }, [learningSession.module]);
 
   const lastModuleLabel = useMemo(() => {
     const moduleKey = currentUser?.lastSession?.moduleType?.toLowerCase();
@@ -71,6 +82,10 @@ export default function Component() {
   const { pageTracking, interactionTracking, trackEvent, updateConfig, endSession } = tracking;
   const { trackPageEnter, trackPageLeave, trackNavigation } = pageTracking;
   const { trackSelectionChange, trackButtonClick } = interactionTracking;
+
+  useEffect(() => {
+    setSelectedOption(learningSession.vksLevel ?? '');
+  }, [learningSession.vksLevel]);
 
   useEffect(() => {
     updateConfig({ userId });
@@ -208,10 +223,12 @@ export default function Component() {
 
       updateConfig({ wordId: resolvedWordId, moduleType: resolvedModule.moduleKey });
 
-      const scopedKey = (key: string) => `learning:${userId}:${key}`;
-      localStorage.setItem(scopedKey('learningLevel'), selectedOption);
-      localStorage.setItem(scopedKey('currentWord'), resolvedWord);
-      localStorage.setItem(scopedKey('currentWordId'), String(resolvedWordId));
+    updateLearningSession({
+      wordId: resolvedWordId,
+      word: resolvedWord,
+      module: resolvedModule.moduleKey,
+      vksLevel: selectedOption
+    });
 
       await endSession(true);
       trackNavigation('word-learning-entrance', resolvedModule.path);
@@ -245,10 +262,18 @@ export default function Component() {
                 </p>
                 <div className="text-[11px] text-gray-600 mt-1 space-y-0.5">
                   <p>累计掌握词汇：{currentUser?.wordsStudied ?? 0}</p>
-                  {currentUser?.lastStudied && (
+                  {learningSession.word && (
+                    <p>
+                      当前学习：{activeModuleLabel || '练习'} · 词汇 {learningSession.word}
+                    </p>
+                  )}
+                  {learningSession.lastUpdated && (
+                    <p>最近操作：{new Date(learningSession.lastUpdated).toLocaleString()}</p>
+                  )}
+                  {!learningSession.lastUpdated && currentUser?.lastStudied && (
                     <p>最近学习：{new Date(currentUser.lastStudied).toLocaleString()}</p>
                   )}
-                  {currentUser?.lastSession?.word && (
+                  {!learningSession.word && currentUser?.lastSession?.word && (
                     <p>
                       上次模块：{lastModuleLabel || currentUser.lastSession.moduleType || 'unknown'} · 词汇 {currentUser.lastSession.word}
                     </p>

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
 import { fetchWordExercises } from '@/src/lib/apiClient';
 import type { ExerciseQuestionPayload } from '@/src/lib/types';
 import { useLearningContext } from '@/src/context/LearningContext';
+import { useLearningSession } from '@/src/context/LearningSessionContext';
 
 const DEFAULT_WORD_ID = 1;
 const DEFAULT_WORD_NAME = '发生';
@@ -23,12 +24,13 @@ const Exercise = () => {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
   const [sessionStartTime] = useState(new Date());
-  const [wordId, setWordId] = useState(DEFAULT_WORD_ID);
-  const [wordLabel, setWordLabel] = useState(DEFAULT_WORD_NAME);
+  const [wordId, setWordId] = useState(() => learningSession.wordId ?? DEFAULT_WORD_ID);
+  const [wordLabel, setWordLabel] = useState(() => learningSession.word ?? DEFAULT_WORD_NAME);
   const [wordDefinition, setWordDefinition] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { userId } = useLearningContext();
+  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
 
   const {
     pageTracking,
@@ -55,8 +57,6 @@ const Exercise = () => {
     startTime: questionStartTime
   } = exerciseTimer;
 
-  const scopedKey = useCallback((key: string) => `learning:${userId}:${key}`, [userId]);
-
   const loadExercises = useCallback(async (targetWordId: number, overrideLabel?: string | null) => {
     setLoading(true);
     setError(null);
@@ -80,11 +80,7 @@ const Exercise = () => {
       setShowFeedback(false);
       setIsCorrect(false);
       updateConfig({ wordId: data.wordId });
-
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(scopedKey('currentWordId'), String(data.wordId));
-        window.localStorage.setItem(scopedKey('currentWord'), effectiveWordLabel);
-      }
+      updateLearningSession({ wordId: data.wordId, word: effectiveWordLabel, module: 'exercise' });
 
       trackEvent('exercise_data_loaded', 'exercise', {
         wordId: data.wordId,
@@ -108,28 +104,17 @@ const Exercise = () => {
     } finally {
       setLoading(false);
     }
-  }, [trackEvent, updateConfig]);
+  }, [trackEvent, updateConfig, updateLearningSession]);
+
+  const desiredWordId = useMemo(() => learningSession.wordId ?? DEFAULT_WORD_ID, [learningSession.wordId]);
+  const desiredWordLabel = useMemo(() => learningSession.word ?? DEFAULT_WORD_NAME, [learningSession.word]);
 
   useEffect(() => {
-    let storedWordId = DEFAULT_WORD_ID;
-    let storedWordLabel: string | null = DEFAULT_WORD_NAME;
-
-    if (typeof window !== 'undefined') {
-      const rawWordId = window.localStorage.getItem(scopedKey('currentWordId'));
-      const parsedWordId = rawWordId ? parseInt(rawWordId, 10) : NaN;
-      if (!Number.isNaN(parsedWordId) && parsedWordId > 0) {
-        storedWordId = parsedWordId;
-      }
-      const storedWord = window.localStorage.getItem(scopedKey('currentWord'));
-      if (storedWord) {
-        storedWordLabel = storedWord;
-        setWordLabel(storedWord);
-      }
+    setWordLabel(desiredWordLabel);
+    if (desiredWordId !== wordId || exerciseQuestions.length === 0) {
+      loadExercises(desiredWordId, desiredWordLabel);
     }
-
-    setWordId(storedWordId);
-    loadExercises(storedWordId, storedWordLabel);
-  }, [loadExercises, scopedKey]);
+  }, [desiredWordId, desiredWordLabel, wordId, exerciseQuestions.length, loadExercises]);
 
   useEffect(() => {
     updateConfig({ userId });
