@@ -52,3 +52,14 @@ export interface ExerciseSetResponse {
   questionCount: number;
   questions: ExerciseQuestionPayload[];
 }
+
+export interface UserProfileSummary {
+  userId: string;
+  username?: string;
+  languageLevel?: string;
+  nativeLanguage?: string;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  wordsStudied?: number;
+  lastStudied?: string | null;
+}

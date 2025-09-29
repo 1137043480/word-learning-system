@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLearningContext } from '@/src/context/LearningContext';
 
@@ -9,12 +9,15 @@ const UserSwitcher: React.FC = () => {
     availableUsers,
     apiBaseUrl,
     setApiBaseUrl,
-    resetApiBaseUrl
+    resetApiBaseUrl,
+    usersLoading,
+    refreshUsers
   } = useLearningContext();
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [customUserId, setCustomUserId] = useState(userId);
   const [apiInput, setApiInput] = useState(apiBaseUrl);
+  const [recentContext, setRecentContext] = useState<Record<string, { word?: string | null; level?: string | null }>>({});
 
   useEffect(() => {
     setCustomUserId(userId);
@@ -23,6 +26,19 @@ const UserSwitcher: React.FC = () => {
   useEffect(() => {
     setApiInput(apiBaseUrl);
   }, [apiBaseUrl]);
+
+  useEffect(() => {
+    if (!panelOpen || typeof window === 'undefined') {
+      return;
+    }
+    const next: Record<string, { word?: string | null; level?: string | null }> = {};
+    availableUsers.forEach(user => {
+      const word = window.localStorage.getItem(`learning:${user.userId}:currentWord`);
+      const level = window.localStorage.getItem(`learning:${user.userId}:learningLevel`);
+      next[user.userId] = { word, level };
+    });
+    setRecentContext(next);
+  }, [availableUsers, panelOpen]);
 
   const handleApplyUser = () => {
     if (customUserId.trim()) {
@@ -33,6 +49,22 @@ const UserSwitcher: React.FC = () => {
   const handleApplyApiBase = () => {
     setApiBaseUrl(apiInput);
   };
+
+  const handleRefreshUsers = async () => {
+    await refreshUsers();
+  };
+
+  const userOptions = useMemo(
+    () =>
+      availableUsers.map(user => ({
+        value: user.userId,
+        label: user.username ? `${user.username} (${user.userId})` : user.userId,
+        subtitle: recentContext[user.userId]?.word,
+        level: recentContext[user.userId]?.level,
+        stats: typeof user.wordsStudied === 'number' ? user.wordsStudied : undefined
+      })),
+    [availableUsers, recentContext]
+  );
 
   return (
     <div className="fixed bottom-4 right-4 z-50 text-sm">
@@ -50,12 +82,18 @@ const UserSwitcher: React.FC = () => {
               onChange={event => setUserId(event.target.value)}
               className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
             >
-              {availableUsers.map(option => (
-                <option key={option} value={option}>
-                  {option}
+              {userOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
+            <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+              <span>{usersLoading ? '同步用户列表中…' : `共 ${availableUsers.length} 个账号`}</span>
+              <Button variant="ghost" size="sm" onClick={handleRefreshUsers} disabled={usersLoading}>
+                刷新
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -96,6 +134,36 @@ const UserSwitcher: React.FC = () => {
               使用默认值
             </Button>
           </div>
+
+          {userOptions.length > 0 && (
+            <div className="space-y-2 border-t pt-3">
+              <p className="text-xs font-semibold text-gray-500">近期上下文</p>
+              <div className="max-h-40 overflow-y-auto space-y-2">
+                {userOptions.map(option => {
+                  const subtitle = option.subtitle;
+                  const level = option.level;
+                  const stats = option.stats;
+                  if (!subtitle && !level && (typeof stats !== 'number' || stats === 0)) {
+                    return null;
+                  }
+                  return (
+                    <div key={option.value} className="rounded border border-dashed border-gray-200 px-2 py-1">
+                      <p className="text-xs font-medium text-gray-700">{option.label}</p>
+                      {subtitle && (
+                        <p className="text-xs text-gray-500">最后词汇：{subtitle}</p>
+                      )}
+                      {level && (
+                        <p className="text-xs text-gray-500">VKS 等级：{level}</p>
+                      )}
+                      {typeof stats === 'number' && stats > 0 && (
+                        <p className="text-xs text-gray-500">掌握词汇数：{stats}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -103,4 +171,3 @@ const UserSwitcher: React.FC = () => {
 };
 
 export default UserSwitcher;
-

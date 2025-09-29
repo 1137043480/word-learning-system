@@ -1,4 +1,4 @@
-import type { ExerciseSetResponse, WordResponse, WordSummary } from './types';
+import type { ExerciseSetResponse, UserProfileSummary, WordResponse, WordSummary } from './types';
 
 const DEFAULT_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? 'http://localhost:5004').replace(/\/$/, '');
 const STORAGE_KEY = 'learningSystem.apiBaseUrl';
@@ -64,7 +64,7 @@ export const fetchWord = (wordId: number | string) => fetchJson<WordResponse>(`/
 
 export const fetchWords = () => fetchJson<WordSummary[]>('/words');
 
-export const fetchWordExercises = (
+export const fetchWordExercises = async (
   wordId: number | string,
   params?: { limit?: number; options?: number }
 ) => {
@@ -78,5 +78,35 @@ export const fetchWordExercises = (
 
   const query = searchParams.toString();
   const suffix = query ? `?${query}` : '';
-  return fetchJson<ExerciseSetResponse>(`/api/learning/word/${wordId}/exercises${suffix}`);
+  const result = await fetchJson<{ success: boolean; data: ExerciseSetResponse; error?: string }>(
+    `/api/learning/word/${wordId}/exercises${suffix}`
+  );
+
+  if (!result.success || !result.data) {
+    throw new Error(result.error || 'Failed to fetch exercises');
+  }
+
+  return result.data;
+};
+
+export const fetchUsers = async (params?: { limit?: number; search?: string }) => {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params?.search) {
+    searchParams.set('search', params.search);
+  }
+
+  const query = searchParams.toString();
+  const suffix = query ? `?${query}` : '';
+  const result = await fetchJson<{ success: boolean; data: UserProfileSummary[]; error?: string }>(
+    `/api/users${suffix}`
+  );
+
+  if (!result.success || !Array.isArray(result.data)) {
+    throw new Error(result.error || 'Failed to fetch users');
+  }
+
+  return result.data;
 };

@@ -12,6 +12,7 @@ import os
 import json
 import random
 import sqlite3
+from sqlalchemy import func
 
 # 导入自适应引擎
 try:
@@ -454,6 +455,66 @@ def get_word_exercises(word_id):
             'questions': questions
         }
     })
+
+
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    """获取用户列表，可选搜索与限制数量"""
+    try:
+        try:
+            limit = int(request.args.get('limit', 50))
+        except (TypeError, ValueError):
+            limit = 50
+        limit = max(1, min(limit, 200))
+
+        search = (request.args.get('search') or '').strip()
+
+        query = UserProfile.query
+        if search:
+            pattern = f"%{search}%"
+            query = query.filter(
+                (UserProfile.user_id.ilike(pattern)) |
+                (UserProfile.username.ilike(pattern))
+            )
+
+        users = query.order_by(UserProfile.created_at.desc()).limit(limit).all()
+        user_ids = [user.user_id for user in users]
+
+        progress_map: dict[str, dict[str, object]] = {}
+        if user_ids:
+            progress_rows = (
+                db.session.query(
+                    UserProgress.user_id,
+                    func.count(UserProgress.word_id).label('words_studied'),
+                    func.max(UserProgress.last_studied).label('last_studied')
+                )
+                .filter(UserProgress.user_id.in_(user_ids))
+                .group_by(UserProgress.user_id)
+                .all()
+            )
+            for row in progress_rows:
+                progress_map[row.user_id] = {
+                    'wordsStudied': int(row.words_studied or 0),
+                    'lastStudied': row.last_studied.isoformat() if row.last_studied else None
+                }
+
+        data = []
+        for user in users:
+            metrics = progress_map.get(user.user_id, {})
+            data.append({
+                'userId': user.user_id,
+                'username': user.username,
+                'languageLevel': user.language_level,
+                'nativeLanguage': user.native_language,
+                'createdAt': user.created_at.isoformat() if user.created_at else None,
+                'updatedAt': user.updated_at.isoformat() if user.updated_at else None,
+                'wordsStudied': metrics.get('wordsStudied', 0),
+                'lastStudied': metrics.get('lastStudied')
+            })
+
+        return jsonify({'success': True, 'data': data})
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
 
 
 # ================================================
