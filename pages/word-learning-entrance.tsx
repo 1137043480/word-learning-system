@@ -116,6 +116,7 @@ export default function Component() {
     }
 
     setSelectedOption(value);
+    updateLearningSession({ vksLevel: value });
     setRecommendationMessage(null);
     setRecommendationError(null);
   };

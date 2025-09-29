@@ -69,6 +69,40 @@ const LearningDashboardSimple: React.FC = () => {
   const { userId } = useLearningContext();
   const { session: learningSession } = useLearningSession();
 
+  const moduleRouteMap: Record<string, string> = {
+    character: '/character-learning',
+    word: '/word-learning',
+    word_learning: '/word-learning',
+    collocation: '/collocation-learning',
+    collocation_learning: '/collocation-learning',
+    sentence: '/sentence-learning',
+    sentence_learning: '/sentence-learning',
+    exercise: '/exercise',
+    review: '/exercise',
+    urgent_review: '/exercise',
+    scheduled_review: '/exercise'
+  };
+
+  const resumeModuleLabel = useCallback((module?: string | null) => {
+    if (!module) return null;
+    switch (module.toLowerCase()) {
+      case 'character': return '字学习';
+      case 'word':
+      case 'word_learning': return '词学习';
+      case 'collocation':
+      case 'collocation_learning': return '搭配学习';
+      case 'sentence':
+      case 'sentence_learning': return '例句学习';
+      case 'exercise': return '练习';
+      case 'review': return '复习';
+      case 'urgent_review': return '紧急复习';
+      case 'scheduled_review': return '计划复习';
+      default: return module;
+    }
+  }, []);
+
+  const resumeModulePath = learningSession.module ? moduleRouteMap[learningSession.module.toLowerCase()] || null : null;
+
   const fetchDashboardData = useCallback(async () => {
     try {
       const response = await fetch(buildApiUrl(`/api/analytics/user/${userId}/dashboard?range=${timeRange}`));
@@ -285,9 +319,22 @@ const LearningDashboardSimple: React.FC = () => {
           <CardContent className="text-sm text-blue-900 space-y-1">
             <p>用户：{userId}</p>
             <p>最近词汇：{learningSession.word ?? '尚未选择'}</p>
-            <p>最近模块：{learningSession.module ?? '未记录'}</p>
+            <p>最近模块：{resumeModuleLabel(learningSession.module) ?? '未记录'}</p>
             <p>VKS 选择：{learningSession.vksLevel ?? '未记录'}</p>
             <p>更新时间：{learningSession.lastUpdated ? new Date(learningSession.lastUpdated).toLocaleString() : '—'}</p>
+            <div className="pt-2">
+              <Button
+                size="sm"
+                disabled={!resumeModulePath}
+                onClick={() => {
+                  if (resumeModulePath) {
+                    router.push(resumeModulePath);
+                  }
+                }}
+              >
+                继续学习
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
