@@ -62,4 +62,11 @@ export interface UserProfileSummary {
   updatedAt?: string | null;
   wordsStudied?: number;
   lastStudied?: string | null;
+  lastSession?: {
+    wordId?: number | null;
+    word?: string | null;
+    moduleType?: string | null;
+    sessionType?: string | null;
+    startedAt?: string | null;
+  };
 }

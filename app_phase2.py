@@ -498,6 +498,44 @@ def get_users():
                     'lastStudied': row.last_studied.isoformat() if row.last_studied else None
                 }
 
+        last_session_map: dict[str, dict[str, object]] = {}
+        if user_ids:
+            last_session_subquery = (
+                db.session.query(
+                    LearningSession.user_id.label('user_id'),
+                    func.max(LearningSession.start_time).label('last_start')
+                )
+                .filter(LearningSession.user_id.in_(user_ids))
+                .group_by(LearningSession.user_id)
+                .subquery()
+            )
+
+            last_sessions = (
+                db.session.query(
+                    LearningSession.user_id,
+                    LearningSession.word_id,
+                    LearningSession.module_type,
+                    LearningSession.session_type,
+                    LearningSession.start_time,
+                    Word.pinyin.label('word')
+                )
+                .join(last_session_subquery, (
+                    (LearningSession.user_id == last_session_subquery.c.user_id) &
+                    (LearningSession.start_time == last_session_subquery.c.last_start)
+                ))
+                .outerjoin(Word, Word.id == LearningSession.word_id)
+                .all()
+            )
+
+            for row in last_sessions:
+                last_session_map[row.user_id] = {
+                    'wordId': row.word_id,
+                    'word': row.word,
+                    'moduleType': row.module_type,
+                    'sessionType': row.session_type,
+                    'startedAt': row.start_time.isoformat() if row.start_time else None
+                }
+
         data = []
         for user in users:
             metrics = progress_map.get(user.user_id, {})
@@ -509,7 +547,8 @@ def get_users():
                 'createdAt': user.created_at.isoformat() if user.created_at else None,
                 'updatedAt': user.updated_at.isoformat() if user.updated_at else None,
                 'wordsStudied': metrics.get('wordsStudied', 0),
-                'lastStudied': metrics.get('lastStudied')
+                'lastStudied': metrics.get('lastStudied'),
+                'lastSession': last_session_map.get(user.user_id)
             })
 
         return jsonify({'success': True, 'data': data})

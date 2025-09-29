@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,17 @@ export default function Component() {
   const [recommendationMessage, setRecommendationMessage] = useState<string | null>(null);
   const [recommendationError, setRecommendationError] = useState<string | null>(null);
   const router = useRouter();
-  const { userId } = useLearningContext();
+  const { userId, availableUsers } = useLearningContext();
+
+  const currentUser = useMemo(() => availableUsers.find(user => user.userId === userId), [availableUsers, userId]);
+
+  const lastModuleLabel = useMemo(() => {
+    const moduleKey = currentUser?.lastSession?.moduleType?.toLowerCase();
+    if (!moduleKey) {
+      return null;
+    }
+    return moduleRouteMap[moduleKey]?.label ?? currentUser?.lastSession?.moduleType;
+  }, [currentUser]);
 
   const tracking = useComprehensiveTracking({
     userId,
@@ -230,6 +240,20 @@ export default function Component() {
             <div className="h-full pt-6 pb-4 flex flex-col">
               <div className="bg-orange-200 p-3">
                 <h1 className="text-lg font-semibold">word learning</h1>
+                <p className="text-xs text-gray-700 mt-1">
+                  当前账号：{currentUser?.username ? `${currentUser.username} (${userId})` : userId}
+                </p>
+                <div className="text-[11px] text-gray-600 mt-1 space-y-0.5">
+                  <p>累计掌握词汇：{currentUser?.wordsStudied ?? 0}</p>
+                  {currentUser?.lastStudied && (
+                    <p>最近学习：{new Date(currentUser.lastStudied).toLocaleString()}</p>
+                  )}
+                  {currentUser?.lastSession?.word && (
+                    <p>
+                      上次模块：{lastModuleLabel || currentUser.lastSession.moduleType || 'unknown'} · 词汇 {currentUser.lastSession.word}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="flex-1 p-3 flex flex-col justify-between overflow-y-auto">
                 <div className="space-y-3">

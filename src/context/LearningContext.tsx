@@ -14,6 +14,13 @@ export interface LearningUser {
   nativeLanguage?: string | null;
   lastStudied?: string | null;
   wordsStudied?: number;
+  lastSession?: {
+    wordId?: number | null;
+    word?: string | null;
+    moduleType?: string | null;
+    sessionType?: string | null;
+    startedAt?: string | null;
+  };
 }
 
 /* eslint-disable @typescript-eslint/no-unused-vars, no-unused-vars */
@@ -74,7 +81,8 @@ const normalizeProfile = (profile: UserProfileSummary): LearningUser => ({
   languageLevel: profile.languageLevel ?? null,
   nativeLanguage: profile.nativeLanguage ?? null,
   lastStudied: profile.lastStudied ?? null,
-  wordsStudied: typeof profile.wordsStudied === 'number' ? profile.wordsStudied : 0
+  wordsStudied: typeof profile.wordsStudied === 'number' ? profile.wordsStudied : 0,
+  lastSession: profile.lastSession
 });
 
 const mergeUser = (base: LearningUser | undefined, incoming: LearningUser): LearningUser => ({
@@ -86,7 +94,8 @@ const mergeUser = (base: LearningUser | undefined, incoming: LearningUser): Lear
   wordsStudied:
     typeof incoming.wordsStudied === 'number'
       ? incoming.wordsStudied
-      : base?.wordsStudied ?? 0
+      : base?.wordsStudied ?? 0,
+  lastSession: incoming.lastSession ?? base?.lastSession
 });
 
 const sortUsers = (users: LearningUser[]) =>

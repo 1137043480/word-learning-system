@@ -54,17 +54,27 @@ const UserSwitcher: React.FC = () => {
     await refreshUsers();
   };
 
-  const userOptions = useMemo(
-    () =>
-      availableUsers.map(user => ({
+  const userOptions = useMemo(() => {
+    return availableUsers.map(user => {
+      const localContext = recentContext[user.userId];
+      const lastSession = user.lastSession;
+      const subtitle = lastSession?.word || localContext?.word;
+      const moduleType = lastSession?.moduleType;
+      const level = localContext?.level;
+      const stats = typeof user.wordsStudied === 'number' ? user.wordsStudied : undefined;
+      const lastStudiedAt = lastSession?.startedAt || user.lastStudied;
+
+      return {
         value: user.userId,
         label: user.username ? `${user.username} (${user.userId})` : user.userId,
-        subtitle: recentContext[user.userId]?.word,
-        level: recentContext[user.userId]?.level,
-        stats: typeof user.wordsStudied === 'number' ? user.wordsStudied : undefined
-      })),
-    [availableUsers, recentContext]
-  );
+        subtitle,
+        moduleType,
+        level,
+        stats,
+        lastStudiedAt
+      };
+    });
+  }, [availableUsers, recentContext]);
 
   return (
     <div className="fixed bottom-4 right-4 z-50 text-sm">
@@ -143,7 +153,9 @@ const UserSwitcher: React.FC = () => {
                   const subtitle = option.subtitle;
                   const level = option.level;
                   const stats = option.stats;
-                  if (!subtitle && !level && (typeof stats !== 'number' || stats === 0)) {
+                  const moduleType = option.moduleType;
+                  const lastStudiedAt = option.lastStudiedAt;
+                  if (!subtitle && !level && !moduleType && !lastStudiedAt && (typeof stats !== 'number' || stats === 0)) {
                     return null;
                   }
                   return (
@@ -152,8 +164,14 @@ const UserSwitcher: React.FC = () => {
                       {subtitle && (
                         <p className="text-xs text-gray-500">最后词汇：{subtitle}</p>
                       )}
+                      {moduleType && (
+                        <p className="text-xs text-gray-500">最近模块：{moduleType}</p>
+                      )}
                       {level && (
                         <p className="text-xs text-gray-500">VKS 等级：{level}</p>
+                      )}
+                      {lastStudiedAt && (
+                        <p className="text-xs text-gray-400">最近学习时间：{new Date(lastStudiedAt).toLocaleString()}</p>
                       )}
                       {typeof stats === 'number' && stats > 0 && (
                         <p className="text-xs text-gray-500">掌握词汇数：{stats}</p>
