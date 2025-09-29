@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLearningContext } from '@/src/context/LearningContext';
+import { useLearningSession } from '@/src/context/LearningSessionContext';
 
 const UserSwitcher: React.FC = () => {
   const {
@@ -13,6 +14,7 @@ const UserSwitcher: React.FC = () => {
     usersLoading,
     refreshUsers
   } = useLearningContext();
+  const { clearSession } = useLearningSession();
 
   const [panelOpen, setPanelOpen] = useState(false);
   const [customUserId, setCustomUserId] = useState(userId);
@@ -176,6 +178,22 @@ const UserSwitcher: React.FC = () => {
             </div>
             <Button type="button" variant="outline" size="sm" onClick={resetApiBaseUrl}>
               使用默认值
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500">学习上下文</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                clearSession();
+                handleRefreshUsers();
+                setRecentContext(prev => ({ ...prev, [userId]: {} }));
+              }}
+            >
+              清除当前会话数据
             </Button>
           </div>
 

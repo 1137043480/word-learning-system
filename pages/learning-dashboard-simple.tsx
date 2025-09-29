@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { buildApiUrl } from "@/src/lib/apiClient";
 import { useLearningContext } from "@/src/context/LearningContext";
+import { useLearningSession } from '@/src/context/LearningSessionContext';
 
 interface DashboardData {
   overview: {
@@ -66,6 +67,7 @@ const LearningDashboardSimple: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const { userId } = useLearningContext();
+  const { session: learningSession } = useLearningSession();
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -242,7 +244,7 @@ const LearningDashboardSimple: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        
+
         {/* 页面标题 */}
         <div className="flex justify-between items-center">
           <div>
@@ -273,6 +275,21 @@ const LearningDashboardSimple: React.FC = () => {
             </Button>
           </div>
         </div>
+
+        {/* 当前学习上下文 */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-blue-700">当前学习上下文</CardTitle>
+            <CardDescription className="text-xs text-blue-600">来源于最近的学习流程与本地会话记录</CardDescription>
+          </CardHeader>
+          <CardContent className="text-sm text-blue-900 space-y-1">
+            <p>用户：{userId}</p>
+            <p>最近词汇：{learningSession.word ?? '尚未选择'}</p>
+            <p>最近模块：{learningSession.module ?? '未记录'}</p>
+            <p>VKS 选择：{learningSession.vksLevel ?? '未记录'}</p>
+            <p>更新时间：{learningSession.lastUpdated ? new Date(learningSession.lastUpdated).toLocaleString() : '—'}</p>
+          </CardContent>
+        </Card>
 
         {/* 智能推荐卡片 */}
         {recommendation && (
