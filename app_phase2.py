@@ -556,6 +556,52 @@ def get_users():
         return jsonify({'success': False, 'error': str(exc)}), 500
 
 
+@app.route('/api/users/<user_id>/sessions/recent', methods=['GET'])
+def get_recent_sessions(user_id):
+    """获取指定用户最近的学习会话列表"""
+    try:
+        try:
+            limit = int(request.args.get('limit', 10))
+        except (TypeError, ValueError):
+            limit = 10
+        limit = max(1, min(limit, 50))
+
+        sessions = (
+            db.session.query(
+                LearningSession.session_id,
+                LearningSession.word_id,
+                LearningSession.module_type,
+                LearningSession.session_type,
+                LearningSession.start_time,
+                LearningSession.end_time,
+                LearningSession.duration_seconds,
+                Word.pinyin.label('word')
+            )
+            .outerjoin(Word, Word.id == LearningSession.word_id)
+            .filter(LearningSession.user_id == user_id)
+            .order_by(LearningSession.start_time.desc())
+            .limit(limit)
+            .all()
+        )
+
+        data = []
+        for item in sessions:
+            data.append({
+                'sessionId': item.session_id,
+                'wordId': item.word_id,
+                'word': item.word,
+                'moduleType': item.module_type,
+                'sessionType': item.session_type,
+                'startTime': item.start_time.isoformat() if item.start_time else None,
+                'endTime': item.end_time.isoformat() if item.end_time else None,
+                'durationSeconds': item.duration_seconds
+            })
+
+        return jsonify({'success': True, 'data': data})
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
 # ================================================
 # 第二阶段自适应推荐API
 # ================================================

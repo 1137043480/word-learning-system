@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { buildApiUrl } from "@/src/lib/apiClient";
+import { buildApiUrl, fetchRecentSessions } from "@/src/lib/apiClient";
 import { useLearningContext } from "@/src/context/LearningContext";
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 
@@ -62,6 +62,7 @@ const LearningDashboardSimple: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [dueReviews, setDueReviews] = useState<DueReview[]>([]);
+  const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('month');
   const [error, setError] = useState<string | null>(null);
@@ -149,6 +150,16 @@ const LearningDashboardSimple: React.FC = () => {
     }
   }, [userId]);
 
+  const fetchRecentSessionsData = useCallback(async () => {
+    try {
+      const sessions = await fetchRecentSessions(userId, { limit: 5 });
+      setRecentSessions(sessions);
+    } catch (err) {
+      console.error('Recent sessions fetch error:', err);
+      setRecentSessions([]);
+    }
+  }, [userId]);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -158,9 +169,12 @@ const LearningDashboardSimple: React.FC = () => {
     setDueReviews([]);
 
     const run = async () => {
-      await fetchDashboardData();
-      await fetchRecommendation();
-      await fetchDueReviews();
+      await Promise.all([
+        fetchDashboardData(),
+        fetchRecommendation(),
+        fetchDueReviews(),
+        fetchRecentSessionsData()
+      ]);
       if (!cancelled) {
         setLoading(false);
       }
@@ -171,7 +185,7 @@ const LearningDashboardSimple: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [fetchDashboardData, fetchRecommendation, fetchDueReviews]);
+  }, [fetchDashboardData, fetchRecommendation, fetchDueReviews, fetchRecentSessionsData]);
 
   const handleAcceptRecommendation = async (accepted: boolean) => {
     if (!recommendation) return;
@@ -337,6 +351,47 @@ const LearningDashboardSimple: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {recentSessions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>最近学习会话</CardTitle>
+              <CardDescription>最近 5 次学习活动概览</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {recentSessions.map(session => (
+                <div key={session.sessionId} className="flex justify-between items-center border border-gray-100 rounded-lg px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {session.word ?? '未知词汇'} · {resumeModuleLabel(session.moduleType)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {session.startTime ? new Date(session.startTime).toLocaleString() : '时间未知'}
+                      {typeof session.durationSeconds === 'number' && session.durationSeconds > 0 && (
+                        <span> · 时长 {Math.round(session.durationSeconds)} 秒</span>
+                      )}
+                    </p>
+                  </div>
+                  {session.moduleType && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const moduleKey = session.moduleType?.toLowerCase();
+                        const path = moduleKey ? moduleRouteMap[moduleKey] : null;
+                        if (path) {
+                          router.push(path);
+                        }
+                      }}
+                    >
+                      打开
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* 智能推荐卡片 */}
         {recommendation && (

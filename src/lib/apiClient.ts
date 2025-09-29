@@ -1,4 +1,4 @@
-import type { ExerciseSetResponse, UserProfileSummary, WordResponse, WordSummary } from './types';
+import type { ExerciseSetResponse, RecentSessionSummary, UserProfileSummary, WordResponse, WordSummary } from './types';
 
 const DEFAULT_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? 'http://localhost:5004').replace(/\/$/, '');
 const STORAGE_KEY = 'learningSystem.apiBaseUrl';
@@ -108,5 +108,21 @@ export const fetchUsers = async (params?: { limit?: number; search?: string }) =
     throw new Error(result.error || 'Failed to fetch users');
   }
 
+  return result.data;
+};
+
+export const fetchRecentSessions = async (userId: string, params?: { limit?: number }) => {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+  const query = searchParams.toString();
+  const suffix = query ? `?${query}` : '';
+  const result = await fetchJson<{ success: boolean; data: RecentSessionSummary[]; error?: string }>(
+    `/api/users/${userId}/sessions/recent${suffix}`
+  );
+  if (!result.success || !Array.isArray(result.data)) {
+    throw new Error(result.error || 'Failed to fetch recent sessions');
+  }
   return result.data;
 };

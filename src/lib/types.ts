@@ -70,3 +70,14 @@ export interface UserProfileSummary {
     startedAt?: string | null;
   };
 }
+
+export interface RecentSessionSummary {
+  sessionId: string;
+  wordId?: number | null;
+  word?: string | null;
+  moduleType?: string | null;
+  sessionType?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  durationSeconds?: number | null;
+}
