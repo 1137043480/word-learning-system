@@ -18,7 +18,7 @@ const deriveHanzi = (characters: WordCharacter[]) => {
 
 const normaliseWord = (raw: WordResponse): WordData => ({
   ...raw,
-  hanzi: deriveHanzi(raw.characters),
+  hanzi: raw.hanzi ?? deriveHanzi(raw.characters),
 });
 
 const parseStoredId = (value: string | null): number | null => {

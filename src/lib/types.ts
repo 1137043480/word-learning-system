@@ -22,6 +22,7 @@ export interface WordResponse {
   id: number;
   pinyin: string;
   definition: string;
+  hanzi?: string;
   examples: WordExample[];
   collocations: WordCollocation[];
   characters: WordCharacter[];

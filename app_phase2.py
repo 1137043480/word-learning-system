@@ -217,13 +217,39 @@ def get_word(id):
     collocations = Collocation.query.filter_by(word_id=id).all()
     characters = Character.query.filter_by(word_id=id).all()
     
+    hanzi = ''.join([char.character for char in characters]) if characters else None
+
     word_data = {
         'id': word.id,
         'pinyin': word.pinyin,
         'definition': word.definition,
-        'examples': [{'sentence': ex.sentence, 'pinyin': ex.pinyin, 'translation': ex.translation, 'audio': ex.audio} for ex in examples],
-        'collocations': [{'collocation': col.collocation, 'translation': col.translation, 'audio': col.audio} for col in collocations],
-        'characters': [{'character': char.character, 'pinyin': char.pinyin, 'definition': char.definition, 'audio': char.audio} for char in characters]
+        'hanzi': hanzi,
+        'examples': [
+            {
+                'sentence': ex.sentence,
+                'pinyin': ex.pinyin,
+                'translation': ex.translation,
+                'audio': ex.audio
+            }
+            for ex in examples
+        ],
+        'collocations': [
+            {
+                'collocation': col.collocation,
+                'translation': col.translation,
+                'audio': col.audio
+            }
+            for col in collocations
+        ],
+        'characters': [
+            {
+                'character': char.character,
+                'pinyin': char.pinyin,
+                'definition': char.definition,
+                'audio': char.audio
+            }
+            for char in characters
+        ]
     }
     return jsonify(word_data)
 
