@@ -32,3 +32,23 @@ export interface WordSummary {
   pinyin: string;
   definition: string;
 }
+
+export type ExerciseQuestionType = 'definition' | 'collocation' | 'fill_word';
+
+export interface ExerciseQuestionPayload {
+  id: string;
+  type: ExerciseQuestionType;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  feedback?: string;
+}
+
+export interface ExerciseSetResponse {
+  wordId: number;
+  word: string;
+  definition: string;
+  options: string[];
+  questionCount: number;
+  questions: ExerciseQuestionPayload[];
+}

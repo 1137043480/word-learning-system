@@ -1,4 +1,4 @@
-import type { WordResponse, WordSummary } from './types';
+import type { ExerciseSetResponse, WordResponse, WordSummary } from './types';
 
 export const DEFAULT_API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? 'http://localhost:5004').replace(/\/$/, '');
 
@@ -26,3 +26,20 @@ export const fetchJson = async <T>(path: string, init?: RequestInit): Promise<T>
 export const fetchWord = (wordId: number | string) => fetchJson<WordResponse>(`/word/${wordId}`);
 
 export const fetchWords = () => fetchJson<WordSummary[]>('/words');
+
+export const fetchWordExercises = (
+  wordId: number | string,
+  params?: { limit?: number; options?: number }
+) => {
+  const searchParams = new URLSearchParams();
+  if (params?.limit) {
+    searchParams.set('limit', String(params.limit));
+  }
+  if (params?.options) {
+    searchParams.set('options', String(params.options));
+  }
+
+  const query = searchParams.toString();
+  const suffix = query ? `?${query}` : '';
+  return fetchJson<ExerciseSetResponse>(`/api/learning/word/${wordId}/exercises${suffix}`);
+};
