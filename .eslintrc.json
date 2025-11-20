@@ -1,0 +1,30 @@
+{
+    "parser": "@typescript-eslint/parser", // 使用 @typescript-eslint 解析器
+    "extends": [
+      "eslint:recommended", // 使用 ESLint 推荐规则
+      "plugin:@typescript-eslint/recommended", // 使用 @typescript-eslint 推荐规则
+      "plugin:react/recommended" // 使用 React 推荐规则
+    ],
+    "plugins": [
+      "@typescript-eslint", // 启用 @typescript-eslint 插件
+      "react" // 启用 React 插件
+    ],
+    "rules": {
+      // 你可以在这里自定义 ESLint 规则，下面是一些示例
+      "no-unused-vars": "warn", // 警告未使用的变量
+      "semi": ["error", "always"], // 强制使用分号
+      "@typescript-eslint/no-unused-vars": "warn", // 警告未使用的 TypeScript 变量
+      "react/prop-types": "off" // 关闭 React prop-types 校验 (因为 TypeScript 处理了类型)
+    },
+    "settings": {
+      "react": {
+        "version": "detect" // 自动检测使用的 React 版本
+      }
+    },
+    "env": {
+      "browser": true, // 让 ESLint 识别浏览器全局变量
+      "es6": true, // 让 ESLint 识别 ES6 语法
+      "node": true // 让 ESLint 识别 Node.js 全局变量
+    }
+  }
+  

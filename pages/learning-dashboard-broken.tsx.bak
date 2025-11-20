@@ -1,0 +1,524 @@
+/**
+ * 学习分析Dashboard
+ * 展示用户学习数据、进度分析和个性化推荐
+ */
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line, Area, AreaChart
+} from 'recharts';
+import { 
+  Clock, TrendingUp, Target, BookOpen, Brain, 
+  Calendar, Award, RefreshCw, Star, ArrowRight
+} from 'lucide-react';
+
+interface DashboardData {
+  overview: {
+    totalSessions: number;
+    totalStudyTime: number;
+    averageSessionTime: number;
+    completionRate: number;
+  };
+  masteryDistribution: {
+    mastered: number;
+    learning: number;
+    struggling: number;
+    total: number;
+  };
+  accuracyByType: Array<{
+    questionType: string;
+    accuracy: number;
+    totalAttempts: number;
+  }>;
+  dailyProgress: Array<{
+    date: string;
+    studyTime: number;
+    sessions: number;
+  }>;
+}
+
+interface Recommendation {
+  type: string;
+  priority: string;
+  word: string;
+  reason: string;
+  recommended_module: string;
+  confidence: number;
+  estimated_time: number;
+}
+
+interface DueReview {
+  word_id: number;
+  word: string;
+  mastery_level: number;
+  days_overdue: number;
+  priority_score: number;
+  recommended_module: string;
+}
+
+const LearningDashboard: React.FC = () => {
+  const router = useRouter();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
+  const [dueReviews, setDueReviews] = useState<DueReview[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('month');
+  const [error, setError] = useState<string | null>(null);
+
+  const userId = 'test_user_001'; // 在实际应用中从认证系统获取
+
+  useEffect(() => {
+    fetchDashboardData();
+    fetchRecommendation();
+    fetchDueReviews();
+  }, [timeRange]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await fetch(`http://localhost:5004/api/analytics/user/${userId}/dashboard?range=${timeRange}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setDashboardData(result.data);
+      } else {
+        setError(result.error || 'Failed to fetch dashboard data');
+      }
+    } catch (err) {
+      console.error('Dashboard data fetch error:', err);
+      setError('Failed to connect to server');
+    }
+  };
+
+  const fetchRecommendation = async () => {
+    try {
+      const response = await fetch(`http://localhost:5004/api/adaptive/recommendation/${userId}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setRecommendation(result.data);
+      }
+    } catch (err) {
+      console.error('Recommendation fetch error:', err);
+    }
+  };
+
+  const fetchDueReviews = async () => {
+    try {
+      const response = await fetch(`http://localhost:5004/api/review/user/${userId}/due?limit=5`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setDueReviews(result.data);
+      }
+    } catch (err) {
+      console.error('Due reviews fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAcceptRecommendation = async (accepted: boolean) => {
+    if (!recommendation) return;
+
+    try {
+      await fetch('http://localhost:5004/api/adaptive/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recommendationId: recommendation.recommendationId,
+          userId: userId,
+          accepted: accepted,
+          actualChoice: accepted ? recommendation.recommended_module : 'declined'
+        })
+      });
+
+      if (accepted) {
+        // 跳转到推荐的学习模块
+        const moduleRoutes = {
+          'character': '/character-learning',
+          'word': '/word-learning',
+          'collocation': '/collocation-learning',
+          'sentence': '/sentence-learning',
+          'exercise': '/exercise'
+        };
+        
+        const route = moduleRoutes[recommendation.recommended_module] || '/word-learning';
+        router.push(route);
+      } else {
+        // 获取新的推荐
+        fetchRecommendation();
+      }
+    } catch (err) {
+      console.error('Feedback error:', err);
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const formatAccuracy = (accuracy: number) => {
+    return `${(accuracy * 100).toFixed(1)}%`;
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'destructive';
+      case 'medium': return 'default';
+      default: return 'secondary';
+    }
+  };
+
+  const getModuleIcon = (module: string) => {
+    switch (module) {
+      case 'character': return '字';
+      case 'word': return '词';
+      case 'collocation': return '配';
+      case 'sentence': return '句';
+      case 'exercise': return '练';
+      default: return '学';
+    }
+  };
+
+  // 图表颜色
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载学习数据中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">❌ {error}</p>
+          <Button onClick={() => window.location.reload()}>重新加载</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">没有找到学习数据</p>
+          <Button onClick={() => router.push('/')} className="mt-4">回到首页</Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* 页面标题 */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">📊 学习分析Dashboard</h1>
+            <p className="text-gray-600 mt-1">个性化学习数据分析和智能推荐</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={timeRange === 'week' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeRange('week')}
+            >
+              本周
+            </Button>
+            <Button
+              variant={timeRange === 'month' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeRange('month')}
+            >
+              本月
+            </Button>
+            <Button
+              variant={timeRange === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeRange('all')}
+            >
+              全部
+            </Button>
+          </div>
+        </div>
+
+        {/* 智能推荐卡片 */}
+        {recommendation && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Brain className="mr-2 h-5 w-5 text-blue-600" />
+                智能推荐
+                <Badge variant={getPriorityColor(recommendation.priority)} className="ml-2">
+                  {recommendation.priority}
+                </Badge>
+              </CardTitle>
+              <CardDescription>
+                基于您的学习表现，AI为您推荐最适合的学习内容
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg flex items-center">
+                      <span className="mr-2">{getModuleIcon(recommendation.recommended_module)}</span>
+                      {recommendation.word ? `学习词汇: ${recommendation.word}` : '继续学习'}
+                    </h3>
+                    <p className="text-gray-600 mt-1">{recommendation.reason}</p>
+                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <Clock className="mr-1 h-4 w-4" />
+                        预计 {Math.round(recommendation.estimated_time / 60)} 分钟
+                      </span>
+                      <span className="flex items-center">
+                        <Target className="mr-1 h-4 w-4" />
+                        置信度 {(recommendation.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleAcceptRecommendation(false)}
+                    >
+                      下次再说
+                    </Button>
+                    <Button
+                      onClick={() => handleAcceptRecommendation(true)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      开始学习
+                      <ArrowRight className="ml-1 h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 学习概览 */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <BookOpen className="h-8 w-8 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">学习会话</p>
+                  <p className="text-2xl font-bold">{dashboardData.overview.totalSessions}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">总学习时间</p>
+                  <p className="text-2xl font-bold">{formatTime(dashboardData.overview.totalStudyTime)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <TrendingUp className="h-8 w-8 text-orange-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">平均会话</p>
+                  <p className="text-2xl font-bold">{formatTime(dashboardData.overview.averageSessionTime)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <Award className="h-8 w-8 text-purple-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">完成率</p>
+                  <p className="text-2xl font-bold">{formatAccuracy(dashboardData.overview.completionRate)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 主要分析内容 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* 掌握程度分布 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>词汇掌握程度分布</CardTitle>
+              <CardDescription>您对不同词汇的掌握情况统计</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                    已掌握 (≥80%)
+                  </span>
+                  <span className="font-semibold">{dashboardData.masteryDistribution.mastered}</span>
+                </div>
+                <Progress value={(dashboardData.masteryDistribution.mastered / dashboardData.masteryDistribution.total) * 100} className="h-2" />
+                
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                    学习中 (60-80%)
+                  </span>
+                  <span className="font-semibold">{dashboardData.masteryDistribution.learning}</span>
+                </div>
+                <Progress value={(dashboardData.masteryDistribution.learning / dashboardData.masteryDistribution.total) * 100} className="h-2" />
+                
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                    需要加强 (<60%)
+                  </span>
+                  <span className="font-semibold">{dashboardData.masteryDistribution.struggling}</span>
+                </div>
+                <Progress value={(dashboardData.masteryDistribution.struggling / dashboardData.masteryDistribution.total) * 100} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 题型准确率 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>各题型准确率</CardTitle>
+              <CardDescription>不同练习题型的正确率统计</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={dashboardData.accuracyByType}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="questionType" />
+                  <YAxis tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                  <Tooltip formatter={(value) => [`${(value * 100).toFixed(1)}%`, '准确率']} />
+                  <Bar dataKey="accuracy" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 学习趋势和复习计划 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* 每日学习趋势 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>学习时间趋势</CardTitle>
+              <CardDescription>最近的每日学习时间统计</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <AreaChart data={dashboardData.dailyProgress}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis tickFormatter={(value) => `${Math.round(value / 60)}m`} />
+                  <Tooltip formatter={(value) => [formatTime(value), '学习时间']} />
+                  <Area type="monotone" dataKey="studyTime" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* 复习计划 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <RefreshCw className="mr-2 h-5 w-5" />
+                复习计划
+              </CardTitle>
+              <CardDescription>基于遗忘曲线的智能复习安排</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {dueReviews.length > 0 ? (
+                <div className="space-y-3">
+                  {dueReviews.slice(0, 3).map((review, index) => (
+                    <div key={review.word_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-sm font-medium text-blue-600">{getModuleIcon(review.recommended_module)}</span>
+                        </div>
+                        <div>
+                          <p className="font-medium">{review.word}</p>
+                          <p className="text-sm text-gray-500">
+                            掌握度: {(review.mastery_level * 100).toFixed(0)}%
+                            {review.days_overdue > 0 && (
+                              <span className="text-red-500 ml-2">逾期 {review.days_overdue} 天</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={review.days_overdue > 0 ? 'destructive' : 'secondary'}>
+                        复习
+                      </Badge>
+                    </div>
+                  ))}
+                  {dueReviews.length > 3 && (
+                    <p className="text-center text-gray-500 text-sm">
+                      还有 {dueReviews.length - 3} 个词汇待复习
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                  <p className="text-gray-500">暂无待复习内容</p>
+                  <p className="text-sm text-gray-400">继续学习来建立复习计划</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 底部操作区域 */}
+        <div className="flex justify-center space-x-4">
+          <Button variant="outline" onClick={() => router.push('/')}>
+            返回首页
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/time-tracking-demo')}>
+            查看追踪演示
+          </Button>
+          <Button onClick={() => router.push('/word-learning-entrance')}>
+            开始学习
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LearningDashboard;

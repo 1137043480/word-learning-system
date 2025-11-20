@@ -1,0 +1,86 @@
+[
+  {
+    "file": "the answer of the fifth time of learning.pptx",
+    "slides_count": 13,
+    "word_candidates": 0,
+    "output": "the answer of the fifth time of learning.json",
+    "type": "answer"
+  },
+  {
+    "file": "the answer of the first time of learning.pptx",
+    "slides_count": 14,
+    "word_candidates": 0,
+    "output": "the answer of the first time of learning.json",
+    "type": "answer"
+  },
+  {
+    "file": "the answer of the fourth time of learning.pptx",
+    "slides_count": 11,
+    "word_candidates": 0,
+    "output": "the answer of the fourth time of learning.json",
+    "type": "answer"
+  },
+  {
+    "file": "the answer of the second time of learning.pptx",
+    "slides_count": 13,
+    "word_candidates": 0,
+    "output": "the answer of the second time of learning.json",
+    "type": "answer"
+  },
+  {
+    "file": "the answer of the sixth time of learning.pptx",
+    "slides_count": 7,
+    "word_candidates": 0,
+    "output": "the answer of the sixth time of learning.json",
+    "type": "answer"
+  },
+  {
+    "file": "the answer of the third time of learning.pptx",
+    "slides_count": 13,
+    "word_candidates": 0,
+    "output": "the answer of the third time of learning.json",
+    "type": "answer"
+  },
+  {
+    "file": "the first time of learning(group1and2).pptx",
+    "slides_count": 97,
+    "word_candidates": 45,
+    "output": "the first time of learning(group1and2).json",
+    "type": "learning"
+  },
+  {
+    "file": "第三次学习.pptx",
+    "slides_count": 93,
+    "word_candidates": 45,
+    "output": "第三次学习.json",
+    "type": "learning"
+  },
+  {
+    "file": "第二次学习.pptx",
+    "slides_count": 92,
+    "word_candidates": 43,
+    "output": "第二次学习.json",
+    "type": "learning"
+  },
+  {
+    "file": "第五次学习.pptx",
+    "slides_count": 94,
+    "word_candidates": 46,
+    "output": "第五次学习.json",
+    "type": "learning"
+  },
+  {
+    "file": "第六次学习.pptx",
+    "slides_count": 46,
+    "word_candidates": 22,
+    "output": "第六次学习.json",
+    "type": "learning"
+  },
+  {
+    "file": "第四次学习.pptx",
+    "slides_count": 79,
+    "word_candidates": 39,
+    "output": "第四次学习.json",
+    "type": "learning"
+  }
+]
