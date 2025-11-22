@@ -9,6 +9,8 @@ import type { ExerciseQuestionPayload } from '@/src/lib/types';
 import { useLearningContext } from '@/src/context/LearningContext';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
+import ReviewReminder from '@/components/ReviewReminder';
+import HandwritingInput from '@/components/HandwritingInput';
 
 const DEFAULT_WORD_ID = 1;
 const DEFAULT_WORD_NAME = '发生';
@@ -25,6 +27,7 @@ const Exercise = () => {
   const [exerciseQuestions, setExerciseQuestions] = useState<ExerciseQuestion[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<ExerciseQuestion | null>(null);
   const [selectedOption, setSelectedOption] = useState('');
+  const [fillInAnswer, setFillInAnswer] = useState(''); // 填空题答案
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -81,6 +84,7 @@ const Exercise = () => {
       setQuestionIndex(0);
       setCurrentQuestion(normalizedQuestions[0]);
       setSelectedOption('');
+      setFillInAnswer(''); // 重置填空答案
       setShowFeedback(false);
       setIsCorrect(false);
       updateConfig({ wordId: data.wordId });
@@ -154,6 +158,7 @@ const Exercise = () => {
 
     setCurrentQuestion(nextQuestion);
     setSelectedOption('');
+    setFillInAnswer(''); // 重置填空答案
     setShowFeedback(false);
     setIsCorrect(false);
     setAudioPlaying(null);
@@ -200,7 +205,13 @@ const Exercise = () => {
   };
 
   const handleSubmit = async () => {
-    if (!currentQuestion || !selectedOption || !questionStartTime) {
+    if (!currentQuestion || !questionStartTime) {
+      return;
+    }
+
+    // 检查用户是否已作答
+    const hasAnswer = currentQuestion.type === 'fill_word' ? fillInAnswer.trim() : selectedOption;
+    if (!hasAnswer) {
       return;
     }
 
@@ -211,7 +222,23 @@ const Exercise = () => {
     submitAnswer();
     const endTime = new Date();
     const currentHesitations = hesitationCount;
-    const correct = selectedOption === currentQuestion.correctAnswer;
+    
+    // 根据题目类型判断答案是否正确
+    let correct = false;
+    let userAnswer = '';
+    
+    if (currentQuestion.type === 'fill_word') {
+      userAnswer = fillInAnswer.trim();
+      // 填空题：检查答案是否匹配（支持部分匹配和大小写不敏感）
+      const correctAnswer = currentQuestion.correctAnswer.toLowerCase();
+      const userAnswerLower = userAnswer.toLowerCase();
+      correct = correctAnswer === userAnswerLower || 
+                correctAnswer.includes(userAnswerLower) || 
+                userAnswerLower.includes(correctAnswer);
+    } else {
+      userAnswer = selectedOption;
+      correct = selectedOption === currentQuestion.correctAnswer;
+    }
 
     setIsCorrect(correct);
     setShowFeedback(true);
@@ -222,7 +249,7 @@ const Exercise = () => {
       questionId: currentQuestion.id,
       questionType: currentQuestion.type,
       questionContent: currentQuestion.question,
-      userAnswer: selectedOption,
+      userAnswer: userAnswer,
       correctAnswer: currentQuestion.correctAnswer,
       isCorrect: correct,
       startTime: questionStartTime,
@@ -239,7 +266,7 @@ const Exercise = () => {
       isCorrect: correct,
       responseTime,
       hesitationCount: currentHesitations,
-      selectedAnswer: selectedOption,
+      selectedAnswer: userAnswer,
       correctAnswer: currentQuestion.correctAnswer
     });
   };
@@ -375,6 +402,8 @@ const Exercise = () => {
               
               <div className="flex-1 p-3 flex flex-col justify-between overflow-y-auto">
                 <div className="space-y-3">
+                  <ReviewReminder userId={userId} showInline={true} />
+                  
                   {/* 题目区域 */}
                   <div className="bg-white p-3 rounded-lg shadow">
                     <div className="flex justify-between items-center mb-2">
@@ -399,18 +428,40 @@ const Exercise = () => {
                   </div>
 
                   {/* 选项区域 */}
-                  <div className="bg-white p-3 rounded-lg shadow">
-                    <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-2">
-                      {currentQuestion.options.map((option, index) => (
-                        <div key={index} className="flex items-center p-2 rounded border hover:bg-gray-50">
-                          <RadioGroupItem value={option} id={`option-${index}`} className="mr-3" />
-                          <Label htmlFor={`option-${index}`} className="text-sm flex-1 cursor-pointer">
-                            {String.fromCharCode(65 + index)}. {option}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  </div>
+                  {currentQuestion.type === 'fill_word' ? (
+                    // 填空题：使用手写输入
+                    <div className="bg-white p-3 rounded-lg shadow">
+                      <HandwritingInput
+                        onSubmit={(text) => {
+                          setFillInAnswer(text);
+                          // 自动提交
+                          setTimeout(() => {
+                            if (text.trim()) {
+                              handleSubmit();
+                            }
+                          }, 100);
+                        }}
+                        expectedAnswer={currentQuestion.correctAnswer}
+                        placeholder="请手写或输入答案"
+                        width={260}
+                        height={120}
+                      />
+                    </div>
+                  ) : (
+                    // 选择题：使用RadioGroup
+                    <div className="bg-white p-3 rounded-lg shadow">
+                      <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-2">
+                        {currentQuestion.options.map((option, index) => (
+                          <div key={index} className="flex items-center p-2 rounded border hover:bg-gray-50">
+                            <RadioGroupItem value={option} id={`option-${index}`} className="mr-3" />
+                            <Label htmlFor={`option-${index}`} className="text-sm flex-1 cursor-pointer">
+                              {String.fromCharCode(65 + index)}. {option}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                  )}
 
                   {/* 反馈区域 */}
                   {showFeedback && (
@@ -429,7 +480,7 @@ const Exercise = () => {
                 </div>
 
                 {/* 底部按钮 */}
-                {!showFeedback ? (
+                {!showFeedback && currentQuestion.type !== 'fill_word' ? (
                   <Button 
                     onClick={handleSubmit}
                     disabled={!selectedOption}
@@ -437,14 +488,14 @@ const Exercise = () => {
                   >
                     提交答案
                   </Button>
-                ) : (
+                ) : showFeedback ? (
                   <Button 
                     onClick={handleContinue}
                     className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-base rounded-lg mt-3"
                   >
                     继续
                   </Button>
-                )}
+                ) : null}
               </div>
             </div>
 

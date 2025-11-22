@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Battery, Signal, Wifi, Volume2 } from 'lucide-react';
+import { Battery, Signal, Wifi } from 'lucide-react';
 import { useWordData } from '@/hooks/useWordData';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
+import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Component() {
-  const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
   const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
   const { word, loading, error } = useWordData({ initialWordId: learningSession.wordId ?? undefined });
   const { previous, next, goTo } = useLearningNavigation('collocation');
-
-  const playAudio = (id: string) => {
-    setAudioPlaying(id);
-    setTimeout(() => setAudioPlaying(null), 1000);
-  };
 
   useEffect(() => {
     updateLearningSession({ module: 'collocation' });
@@ -59,14 +54,11 @@ export default function Component() {
               <h2 className="text-2xl font-bold">{word.hanzi}</h2>
               <div className="flex items-center">
                 <span className="text-base mr-2">{word.pinyin}</span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => playAudio('main')}
-                  className={audioPlaying === 'main' ? 'text-blue-500' : 'text-gray-500'}
-                >
-                  <Volume2 size={20} />
-                </Button>
+                <AudioPlayer 
+                  text={word.hanzi}
+                  language="zh-CN"
+                  buttonSize="md"
+                />
               </div>
             </div>
             <div className="space-y-2 text-sm">
@@ -83,14 +75,11 @@ export default function Component() {
                   <p>
                     <span className="font-semibold">{item.collocation}</span> {item.translation}
                   </p>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => playAudio(`collocation-${index}`)}
-                    className={audioPlaying === `collocation-${index}` ? 'text-blue-500' : 'text-gray-500'}
-                  >
-                    <Volume2 size={16} />
-                  </Button>
+                  <AudioPlayer 
+                    text={item.collocation}
+                    language="zh-CN"
+                    buttonSize="sm"
+                  />
                 </div>
               ))}
             </div>

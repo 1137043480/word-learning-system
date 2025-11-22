@@ -1,0 +1,332 @@
+/**
+ * 移动端优化样式
+ * 包含触控优化、性能优化、布局适配等
+ */
+
+/* ==================== 触控优化 ==================== */
+
+/* 增加触控区域，提升可点击性 */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 禁用长按弹出菜单 */
+.no-callout {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+/* 优化触控反馈 */
+.touch-feedback {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.15s ease;
+}
+
+.touch-feedback:active {
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: scale(0.98);
+}
+
+/* 移除iOS默认样式 */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+textarea,
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+/* 禁用iOS文本大小调整 */
+body {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ==================== 滚动优化 ==================== */
+
+/* 平滑滚动 */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* 隐藏滚动条但保持功能 */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==================== 手势支持 ==================== */
+
+/* 支持下拉刷新 */
+.pull-to-refresh {
+  overscroll-behavior: contain;
+}
+
+/* 防止过度滚动 */
+.no-overscroll {
+  overscroll-behavior: none;
+}
+
+/* 双指缩放 */
+.pinch-zoom {
+  touch-action: pinch-zoom;
+}
+
+/* 仅允许垂直滚动 */
+.scroll-y-only {
+  touch-action: pan-y;
+  overscroll-behavior-x: none;
+}
+
+/* 仅允许水平滚动 */
+.scroll-x-only {
+  touch-action: pan-x;
+  overscroll-behavior-y: none;
+}
+
+/* ==================== 布局适配 ==================== */
+
+/* 安全区域适配 (iPhone刘海屏等) */
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-top {
+  padding-top: max(env(safe-area-inset-top), 1rem);
+}
+
+.safe-area-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+}
+
+/* 响应式字体 */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1025px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* ==================== 性能优化 ==================== */
+
+/* GPU加速 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
+/* 优化动画性能 */
+.optimized-animation {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* 图片优化 */
+img {
+  max-width: 100%;
+  height: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* ==================== 横屏适配 ==================== */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* 横屏时减小垂直间距 */
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  /* 横屏时缩小字体 */
+  .landscape-small-text {
+    font-size: 0.875rem;
+  }
+}
+
+/* ==================== 触控友好的表单 ==================== */
+
+/* 输入框优化 */
+input,
+textarea,
+select {
+  font-size: 16px; /* 防止iOS自动缩放 */
+  padding: 12px;
+  border-radius: 8px;
+}
+
+/* 聚焦时的样式 */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* 按钮优化 */
+button {
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* ==================== 加载状态优化 ==================== */
+
+/* 骨架屏 */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==================== 暗色模式支持 ==================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-color: #404040;
+  }
+  
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+}
+
+/* ==================== 无障碍优化 ==================== */
+
+/* 跳过导航链接 */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem;
+  background-color: #667eea;
+  color: white;
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 1rem;
+}
+
+/* 焦点可见性 */
+:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* ==================== 网络状态适配 ==================== */
+
+/* 离线模式样式 */
+.offline-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fbbf24;
+  color: #78350f;
+  padding: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  z-index: 1000;
+}
+
+/* ==================== 实用工具类 ==================== */
+
+/* 文本截断 */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 响应式显示/隐藏 */
+@media (max-width: 640px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 641px) {
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* 防止点击穿透 */
+.prevent-click-through {
+  pointer-events: auto;
+}
+
+/* 启用硬件加速的过渡 */
+.smooth-transition {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+

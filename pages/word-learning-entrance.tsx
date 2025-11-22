@@ -263,6 +263,11 @@ export default function Component() {
                 </p>
                 <div className="text-[11px] text-gray-600 mt-1 space-y-0.5">
                   <p>累计掌握词汇：{currentUser?.wordsStudied ?? 0}</p>
+                  {recommendationMessage && (
+                    <p className="text-green-600 font-semibold">
+                      💡 {recommendationMessage}
+                    </p>
+                  )}
                   {learningSession.word && (
                     <p>
                       当前学习：{activeModuleLabel || '练习'} · 词汇 {learningSession.word}
@@ -279,6 +284,22 @@ export default function Component() {
                       上次模块：{lastModuleLabel || currentUser.lastSession.moduleType || 'unknown'} · 词汇 {currentUser.lastSession.word}
                     </p>
                   )}
+                </div>
+                <div className="mt-2 space-x-2">
+                  <Button
+                    size="sm"
+                    onClick={() => router.push('/learning-dashboard')}
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-3 py-1 h-auto"
+                  >
+                    📊 Dashboard
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => router.push('/today-review')}
+                    className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 h-auto"
+                  >
+                    ⏰ 复习
+                  </Button>
                 </div>
               </div>
               <div className="flex-1 p-3 flex flex-col justify-between overflow-y-auto">

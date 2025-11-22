@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Battery, Signal, Wifi, Volume2 } from 'lucide-react';
+import { Battery, Signal, Wifi } from 'lucide-react';
 import { useWordData } from '@/hooks/useWordData';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 import { useLearningNavigation } from '@/src/hooks/useLearningNavigation';
+import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Component() {
-  const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
   const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
   const { word, loading, error } = useWordData({ initialWordId: learningSession.wordId ?? undefined });
   const { previous, next, goTo } = useLearningNavigation('character');
-
-  const playAudio = (id: string) => {
-    setAudioPlaying(id);
-    setTimeout(() => setAudioPlaying(null), 1000);
-  };
 
   useEffect(() => {
     updateLearningSession({ module: 'character' });

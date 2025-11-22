@@ -4,7 +4,7 @@
 集成自适应推荐引擎、学习分析和复习调度功能
 """
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
@@ -22,8 +22,34 @@ except ImportError:
     AdaptiveRecommendationEngine = None
     SpacedRepetitionAlgorithm = None
 
+# 导入认证模块
+try:
+    from auth import AuthManager, require_auth
+except ImportError:
+    print("⚠️  认证模块未找到，将禁用认证功能")
+    AuthManager = None
+    require_auth = lambda f: f  # 空装饰器
+
+# 导入数据隔离模块
+try:
+    from user_data_isolation import (
+        require_authentication, 
+        check_data_ownership,
+        get_current_user_from_request
+    )
+except ImportError:
+    print("⚠️  数据隔离模块未找到，将使用基础功能")
+    require_authentication = lambda allow_url_param=True: lambda f: f
+    check_data_ownership = lambda: lambda f: f
+    get_current_user_from_request = lambda: (None, False)
+
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)  # 支持credentials以便使用cookies
+
+# 配置Session
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # 配置数据库
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -271,13 +297,24 @@ def submit_exercise():
 # ================================================
 
 @app.route('/api/learning/session/start', methods=['POST'])
-def start_learning_session():
+@require_authentication(allow_url_param=True)
+def start_learning_session(current_user_id=None, **kwargs):
     try:
         data = request.get_json()
         
+        # 验证权限：确保用户只能为自己创建会话
+        request_user_id = data.get('userId')
+        if request_user_id and request_user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权为其他用户创建会话',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
+        # 使用认证的用户ID
         session = LearningSession(
             session_id=data['sessionId'],
-            user_id=data['userId'],
+            user_id=current_user_id,  # 使用认证的用户ID
             word_id=data['wordId'],
             session_type=data['sessionType'],
             module_type=data['moduleType'],
@@ -300,13 +337,22 @@ def start_learning_session():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/learning/session/end', methods=['POST'])
-def end_learning_session():
+@require_authentication(allow_url_param=True)
+def end_learning_session(current_user_id=None, **kwargs):
     try:
         data = request.get_json()
         
         session = LearningSession.query.filter_by(session_id=data['sessionId']).first()
         if not session:
             return jsonify({'success': False, 'error': 'Session not found'}), 404
+        
+        # 验证权限：只能结束自己的会话
+        if session.user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权结束其他用户的会话',
+                'code': 'PERMISSION_DENIED'
+            }), 403
         
         session.end_time = datetime.fromisoformat(data['endTime'].replace('Z', '+00:00'))
         session.duration_seconds = data['durationSeconds']
@@ -326,9 +372,19 @@ def end_learning_session():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/learning/exercise/record', methods=['POST'])
-def record_exercise_result():
+@require_authentication(allow_url_param=True)
+def record_exercise_result(current_user_id=None, **kwargs):
     try:
         data = request.get_json()
+        
+        # 验证权限：检查session是否属于当前用户
+        session = LearningSession.query.filter_by(session_id=data['sessionId']).first()
+        if session and session.user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权为其他用户的会话记录练习',
+                'code': 'PERMISSION_DENIED'
+            }), 403
         
         exercise = ExerciseRecord(
             session_id=data['sessionId'],
@@ -583,9 +639,18 @@ def get_users():
 
 
 @app.route('/api/users/<user_id>/sessions/recent', methods=['GET'])
-def get_recent_sessions(user_id):
+@require_authentication(allow_url_param=True)
+def get_recent_sessions(user_id, current_user_id=None, **kwargs):
     """获取指定用户最近的学习会话列表"""
     try:
+        # 验证权限：用户只能查看自己的会话
+        if user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权访问其他用户的数据',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
         try:
             limit = int(request.args.get('limit', 10))
         except (TypeError, ValueError):
@@ -633,9 +698,18 @@ def get_recent_sessions(user_id):
 # ================================================
 
 @app.route('/api/adaptive/recommendation/<user_id>', methods=['GET'])
-def get_adaptive_recommendation(user_id):
+@require_authentication(allow_url_param=True)
+def get_adaptive_recommendation(user_id, current_user_id=None, **kwargs):
     """获取个性化推荐"""
     try:
+        # 验证权限：用户只能获取自己的推荐
+        if user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权访问其他用户的数据',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
         # 获取上下文参数
         context = {}
         if request.args.get('context'):
@@ -664,15 +738,25 @@ def get_adaptive_recommendation(user_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/adaptive/feedback', methods=['POST'])
-def record_recommendation_feedback():
+@require_authentication(allow_url_param=True)
+def record_recommendation_feedback(current_user_id=None, **kwargs):
     """记录推荐反馈"""
     try:
         data = request.get_json()
         
+        # 验证权限：只能提交自己的反馈
+        feedback_user_id = data.get('userId')
+        if feedback_user_id and feedback_user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权提交其他用户的反馈',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
         if recommendation_engine:
             success = recommendation_engine.record_recommendation_feedback(
                 data['recommendationId'],
-                data['userId'],
+                current_user_id,  # 使用认证的用户ID
                 {
                     'accepted': data.get('accepted', False),
                     'actual_choice': data.get('actualChoice'),
@@ -691,9 +775,18 @@ def record_recommendation_feedback():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/review/user/<user_id>/due', methods=['GET'])
-def get_due_reviews(user_id):
+@require_authentication(allow_url_param=True)
+def get_due_reviews(user_id, current_user_id=None, **kwargs):
     """获取到期复习内容"""
     try:
+        # 验证权限：用户只能查看自己的复习
+        if user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权访问其他用户的数据',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
         limit = int(request.args.get('limit', 10))
         
         if spaced_repetition:
@@ -710,9 +803,18 @@ def get_due_reviews(user_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/analytics/user/<user_id>/dashboard', methods=['GET'])
-def get_user_dashboard(user_id):
+@require_authentication(allow_url_param=True)
+def get_user_dashboard(user_id, current_user_id=None, **kwargs):
     """获取用户学习dashboard数据"""
     try:
+        # 验证权限：用户只能查看自己的Dashboard
+        if user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权访问其他用户的数据',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
         time_range = request.args.get('range', 'month')  # week, month, all
         
         dashboard_data = generate_dashboard_data(user_id, time_range)
@@ -726,9 +828,18 @@ def get_user_dashboard(user_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/analytics/user/<user_id>/progress', methods=['GET'])
-def get_user_detailed_progress(user_id):
+@require_authentication(allow_url_param=True)
+def get_user_detailed_progress(user_id, current_user_id=None, **kwargs):
     """获取用户详细学习进度"""
     try:
+        # 验证权限：用户只能查看自己的进度
+        if user_id != current_user_id:
+            return jsonify({
+                'success': False,
+                'error': '无权访问其他用户的数据',
+                'code': 'PERMISSION_DENIED'
+            }), 403
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -953,6 +1064,53 @@ def generate_dashboard_data(user_id, time_range):
         
         daily_stats = cursor.fetchall()
         
+        # 今日统计
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as sessions,
+                SUM(duration_seconds) as study_time,
+                COUNT(DISTINCT word_id) as words_reviewed
+            FROM learning_session
+            WHERE user_id = ? AND DATE(start_time) = DATE('now')
+        """, (user_id,))
+        
+        today = cursor.fetchone()
+        
+        # 今日练习统计
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as exercises,
+                AVG(CASE WHEN is_correct = 1 THEN 1.0 ELSE 0.0 END) as accuracy
+            FROM exercise_record er
+            JOIN learning_session ls ON er.session_id = ls.session_id
+            WHERE ls.user_id = ? AND DATE(er.created_at) = DATE('now')
+        """, (user_id,))
+        
+        today_exercises = cursor.fetchone()
+        
+        # 到期复习数量
+        cursor.execute("""
+            SELECT COUNT(*) FROM user_progress
+            WHERE user_id = ? AND next_review_suggested <= datetime('now')
+        """, (user_id,))
+        
+        due_reviews = cursor.fetchone()[0]
+        
+        # 整体进度
+        cursor.execute("""
+            SELECT COUNT(*) FROM word
+        """)
+        total_words = cursor.fetchone()[0]
+        
+        cursor.execute("""
+            SELECT 
+                AVG(mastery_level) as avg_mastery
+            FROM user_progress
+            WHERE user_id = ?
+        """, (user_id,))
+        
+        avg_mastery = cursor.fetchone()[0] or 0
+        
         dashboard = {
             'overview': {
                 'totalSessions': overview[0] or 0,
@@ -981,13 +1139,221 @@ def generate_dashboard_data(user_id, time_range):
                     'sessions': row[2] or 0
                 }
                 for row in daily_stats
-            ]
+            ],
+            'todayStats': {
+                'studyTimeMinutes': int((today[1] or 0) / 60),
+                'wordsReviewed': today[2] or 0,
+                'exercisesCompleted': today_exercises[0] or 0,
+                'averageAccuracy': today_exercises[1] or 0
+            },
+            'overallProgress': {
+                'totalWords': total_words,
+                'studiedWords': mastery_dist[3] or 0,
+                'masteredWords': mastery_dist[0] or 0,
+                'averageMastery': avg_mastery
+            },
+            'dueReviews': due_reviews,
+            'recommendations': [],
+            'strengths': [],
+            'weaknesses': []
         }
         
         return dashboard
         
     finally:
         conn.close()
+
+# ================================================
+# 用户认证API
+# ================================================
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    """用户注册"""
+    try:
+        if not AuthManager:
+            return jsonify({'success': False, 'error': '认证系统未启用'}), 503
+        
+        auth_manager = AuthManager()
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+        native_language = data.get('native_language', 'English')
+        
+        # 验证必填字段
+        if not username or not password:
+            return jsonify({'success': False, 'error': '用户名和密码不能为空'}), 400
+        
+        # 验证密码强度
+        if len(password) < 6:
+            return jsonify({'success': False, 'error': '密码长度至少6个字符'}), 400
+        
+        # 注册用户
+        result = auth_manager.register_user(
+            username=username,
+            password=password,
+            email=email,
+            native_language=native_language
+        )
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'data': {
+                    'user_id': result['user_id'],
+                    'username': username
+                },
+                'message': result['message']
+            })
+        else:
+            return jsonify({'success': False, 'error': result['message']}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """用户登录"""
+    try:
+        if not AuthManager:
+            return jsonify({'success': False, 'error': '认证系统未启用'}), 503
+        
+        auth_manager = AuthManager()
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        remember_me = data.get('remember_me', False)
+        
+        if not username or not password:
+            return jsonify({'success': False, 'error': '用户名和密码不能为空'}), 400
+        
+        # 执行登录
+        result = auth_manager.login(username, password)
+        
+        if result['success']:
+            # 创建响应
+            response = make_response(jsonify({
+                'success': True,
+                'data': {
+                    'user_id': result['user_id'],
+                    'username': result['username'],
+                    'email': result.get('email'),
+                    'session_token': result['session_token']
+                },
+                'message': result['message']
+            }))
+            
+            # 设置cookie（可选，也可以让前端使用localStorage）
+            max_age = 7 * 24 * 60 * 60 if remember_me else None  # 7天或session
+            response.set_cookie(
+                'session_token',
+                result['session_token'],
+                max_age=max_age,
+                httponly=True,
+                samesite='Lax'
+            )
+            
+            return response
+        else:
+            return jsonify({'success': False, 'error': result['message']}), 401
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def logout():
+    """用户登出"""
+    try:
+        if not AuthManager:
+            return jsonify({'success': False, 'error': '认证系统未启用'}), 503
+        
+        auth_manager = AuthManager()
+        # 从header或cookie获取session token
+        session_token = request.headers.get('X-Session-Token') or request.cookies.get('session_token')
+        
+        if not session_token:
+            return jsonify({'success': False, 'error': '未登录'}), 401
+        
+        # 执行登出
+        result = auth_manager.logout(session_token)
+        
+        if result['success']:
+            # 清除cookie
+            response = make_response(jsonify({
+                'success': True,
+                'message': result['message']
+            }))
+            response.set_cookie('session_token', '', max_age=0)
+            return response
+        else:
+            return jsonify({'success': False, 'error': result['message']}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/auth/me', methods=['GET'])
+def get_current_user():
+    """获取当前登录用户信息"""
+    try:
+        if not AuthManager:
+            return jsonify({'success': False, 'error': '认证系统未启用'}), 503
+        
+        auth_manager = AuthManager()
+        # 从header或cookie获取session token
+        session_token = request.headers.get('X-Session-Token') or request.cookies.get('session_token')
+        
+        if not session_token:
+            return jsonify({'success': False, 'error': '未登录', 'code': 'NOT_AUTHENTICATED'}), 401
+        
+        # 验证session
+        validation = auth_manager.validate_session(session_token)
+        
+        if not validation['valid']:
+            return jsonify({'success': False, 'error': validation['message'], 'code': 'INVALID_SESSION'}), 401
+        
+        # 获取用户信息
+        user_info = auth_manager.get_user_info(validation['user_id'])
+        
+        if user_info:
+            return jsonify({
+                'success': True,
+                'data': user_info
+            })
+        else:
+            return jsonify({'success': False, 'error': '用户不存在'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/auth/validate', methods=['GET'])
+def validate_session():
+    """验证session是否有效（用于前端检查登录状态）"""
+    try:
+        if not AuthManager:
+            return jsonify({'success': False, 'valid': False}), 503
+        
+        auth_manager = AuthManager()
+        session_token = request.headers.get('X-Session-Token') or request.cookies.get('session_token')
+        
+        if not session_token:
+            return jsonify({'success': True, 'valid': False, 'reason': 'no_token'})
+        
+        validation = auth_manager.validate_session(session_token)
+        
+        return jsonify({
+            'success': True,
+            'valid': validation['valid'],
+            'user_id': validation.get('user_id'),
+            'reason': validation.get('message')
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ================================================
 # 应用初始化
