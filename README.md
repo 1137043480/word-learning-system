@@ -17,6 +17,7 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 - 📝 **VKS-based Assessment** — Vocabulary Knowledge Scale testing to determine optimal learning entry points
 - ⏱️ **Millisecond-precision Tracking** — Fine-grained learning behavior recording for research-grade data collection
 - 🔗 **Multi-module Learning Chain** — Character → Vocabulary → Collocation → Sentence progressive learning flow
+- 📖 **SLA-informed Curriculum Design** — Learning materials grounded in Second Language Acquisition theory: word frequency-based difficulty grading via BCC corpus (billions of tokens), NLP-powered collocation extraction using dependency parsing and mutual information, automated sentence complexity scoring, and interlanguage corpus-based confused word identification
 
 ---
 
@@ -27,6 +28,23 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 | **Frontend** | Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui |
 | **Backend** | Flask, SQLAlchemy, SQLite |
 | **Algorithm** | Modified SuperMemo-2, Multi-factor recommendation engine |
+| **ML Models** | AdaBoost (Multinomial NB), Gaussian NB, XGBoost with voting ensemble |
+| **NLP Pipeline** | BCC corpus frequency analysis, dependency parsing, mutual information scoring |
+
+---
+
+## 📚 Research Foundation
+
+This system is built on rigorous academic research at **Peking University**, combining SLA theory, NLP techniques, and adaptive learning algorithms:
+
+- **Corpus-driven vocabulary selection** — Word frequency analysis across BCC corpus (billions of tokens) and a self-collected CFL textbook corpus (165K characters from 13 intermediate-level textbooks) using Pandas and SQL
+- **Frequency-difficulty modeling** — Implements Stewart's finding that log(corpus frequency) strongly correlates with word difficulty (r=0.8), enabling automated difficulty grading
+- **NLP-based collocation extraction** — Collocations sourced from a knowledge base built with dependency parsing and mutual information filtering, ranked by collocation strength
+- **Automated sentence selection** — Sentence complexity computed by summing normalized word difficulties, selecting the lowest-complexity example sentences from textbook corpora
+- **Interlanguage error analysis** — Confused words extracted from the HSK Dynamic Composition Corpus based on learner error frequency, with separated learning to avoid semantic clustering interference
+- **"Relative Character-based" pedagogy** — Following Bai Lesan's theory: learning characters through words (以词带字) at intermediate level, covering pronunciation, form, and high-frequency meanings
+- **Cognitive load balancing** — High/mid/low frequency words and confused words distributed evenly across learning sessions
+- **Validated with real learners** — Two-month teaching experiment with 17 HSK-4 learners, 51 users total, producing statistically significant improvements in vocabulary acquisition, collocation learning, and word proficiency
 
 ---
 
