@@ -1,1 +1,15 @@
 node_modules
+.next
+__pycache__
+*.pyc
+*.db
+instance/
+.DS_Store
+.idea
+.vscode
+.cursor
+.env
+*.egg-info
+dist/
+build/
+.gemini/
