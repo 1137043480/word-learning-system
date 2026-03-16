@@ -1,0 +1,105 @@
+/* Mobile Responsive Enhancements */
+
+/* ===== Viewport & Touch Optimization ===== */
+@media (max-width: 768px) {
+  /* Navigation */
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    transition: left 0.3s ease;
+    z-index: 50;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+
+  /* Learning Cards */
+  .learning-card {
+    margin: 0.5rem;
+    padding: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  /* Exercise Options - larger touch targets */
+  .option-button {
+    min-height: 48px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    touch-action: manipulation;
+  }
+
+  /* Dashboard Grid */
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Analytics Charts */
+  .chart-container {
+    min-height: 200px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Heatmap scroll */
+  .heatmap-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Typography scaling */
+  .chinese-character {
+    font-size: 2rem;
+  }
+
+  .pinyin-text {
+    font-size: 1rem;
+  }
+
+  /* Handwriting canvas */
+  .handwriting-canvas {
+    width: 100%;
+    max-width: 320px;
+    height: 200px;
+    touch-action: none;
+  }
+}
+
+/* ===== Small phones ===== */
+@media (max-width: 375px) {
+  .option-button {
+    font-size: 0.9rem;
+    padding: 10px 12px;
+  }
+
+  .chinese-character {
+    font-size: 1.75rem;
+  }
+}
+
+/* ===== Tablet Optimization ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .learning-card {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+}
+
+/* ===== Safe Area (notch devices) ===== */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .bottom-nav {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  }
+}
