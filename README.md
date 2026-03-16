@@ -5,7 +5,7 @@
 
 **Version**: 2.0.0 · **Status**: Phase 2 Complete · **Last Updated**: September 2025
 
-An intelligent, adaptive vocabulary learning system for intermediate-level Chinese as a Foreign Language (CFL) learners. Built as part of the master's thesis *"Research and Design of an Adaptive Intermediate Chinese Vocabulary Learning System"*, this project implements a full-stack learning platform with AI-driven personalized learning paths, spaced repetition, and comprehensive learning analytics.
+An intelligent, adaptive vocabulary learning system for intermediate-level Chinese as a Foreign Language (CFL) learners. Built as part of a master's thesis at **Peking University** — *"Research and Design of an Adaptive Intermediate Chinese Vocabulary Learning System"* — this project implements a full-stack learning platform with AI-driven personalized learning paths, spaced repetition, and comprehensive learning analytics.
 
 ---
 
@@ -228,4 +228,4 @@ This project is open source and available under the [MIT License](./LICENSE).
 ---
 
 **Built with ❤️ for language learners worldwide**
-*Based on the master's thesis: "Research and Design of an Adaptive Intermediate Chinese Vocabulary Learning System"*
+*Based on a master's thesis at Peking University: "Research and Design of an Adaptive Intermediate Chinese Vocabulary Learning System"*
