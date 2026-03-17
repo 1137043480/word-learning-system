@@ -63,6 +63,14 @@
     <td><img src="docs/screenshots/sentence-learning.png" width="400" alt="例句学习 - 真实语境阅读与听力"></td>
     <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="词汇练习 - 带有即时反馈的互动测试"></td>
   </tr>
+  <tr>
+    <td align="center"><b>间隔重复复习</b></td>
+    <td align="center"><b>学习统计分析</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/today-review.png" width="400" alt="间隔重复复习 - 每日个性化复习任务"></td>
+    <td><img src="docs/screenshots/learning-stats.png" width="400" alt="学习统计分析 - 追踪学习进度与算法状态"></td>
+  </tr>
 </table>
 
 ## 🚀 快速启动

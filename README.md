@@ -56,6 +56,14 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
     <td><img src="docs/screenshots/sentence-learning.png" width="400" alt="Sentence Learning - Contextual reading and listening practice"></td>
     <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="Vocabulary Exercise - Interactive quizzes with immediate feedback"></td>
   </tr>
+  <tr>
+    <td align="center"><b>Spaced Repetition Review</b></td>
+    <td align="center"><b>Learning Statistics</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/today-review.png" width="400" alt="Spaced Repetition Review - Daily personalized review tasks"></td>
+    <td><img src="docs/screenshots/learning-stats.png" width="400" alt="Learning Statistics - Tracking progress and algorithm states"></td>
+  </tr>
 </table>
 
 ## 🛠️ Tech Stack
