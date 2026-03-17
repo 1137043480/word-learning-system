@@ -259,10 +259,10 @@ const LearningDashboardSimple: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
-        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600 text-sm">加载学习数据中...</p>
+      <div className="min-h-screen bg-[#F5F5F9] flex flex-col font-sans items-center justify-center">
+        <div className="w-full max-w-[390px] mx-auto bg-white rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden relative min-h-[844px] flex flex-col items-center justify-center border-[8px] border-black">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6B4BFF] mb-4"></div>
+          <p className="text-gray-500 font-medium">加载数据中...</p>
         </div>
       </div>
     );
@@ -270,13 +270,13 @@ const LearningDashboardSimple: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
-        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center px-6">
-          <div className="glass-card w-full p-6 text-center rounded-2xl border border-red-200 bg-red-50/50">
-            <p className="text-red-600 mb-4 font-medium">❌ {error}</p>
+      <div className="min-h-screen bg-[#F5F5F9] flex flex-col font-sans items-center justify-center">
+        <div className="w-full max-w-[390px] mx-auto bg-white rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden relative min-h-[844px] flex flex-col items-center justify-center px-6 border-[8px] border-black">
+          <div className="w-full p-6 text-center rounded-3xl bg-red-50">
+            <p className="text-red-500 mb-4 font-medium">❌ {error}</p>
             <Button 
                 onClick={() => window.location.reload()}
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-lg shadow-red-500/20"
+                className="w-full bg-[#6B4BFF] hover:bg-[#5A3EE0] text-white rounded-2xl shadow-lg shadow-[#6B4BFF]/20 font-bold"
             >
                 重新加载
             </Button>
@@ -288,13 +288,13 @@ const LearningDashboardSimple: React.FC = () => {
 
   if (!dashboardData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
-        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center px-6">
-          <div className="glass-card w-full p-6 text-center rounded-2xl border border-indigo-100 bg-white/60">
-            <p className="text-indigo-950 font-medium mb-4">没有找到学习数据</p>
+      <div className="min-h-screen bg-[#F5F5F9] flex flex-col font-sans items-center justify-center">
+        <div className="w-full max-w-[390px] mx-auto bg-white rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden relative min-h-[844px] flex flex-col items-center justify-center px-6 border-[8px] border-black">
+          <div className="w-full p-6 text-center rounded-3xl bg-[#F8F9FA]">
+            <p className="text-[#1C1D24] font-medium mb-4">没有找到学习数据</p>
             <Button 
                 onClick={() => router.push('/')}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-600/20"
+                className="w-full bg-[#6B4BFF] hover:bg-[#5A3EE0] text-white rounded-2xl shadow-lg shadow-[#6B4BFF]/20 font-bold"
             >
                 回到首页
             </Button>
@@ -305,224 +305,176 @@ const LearningDashboardSimple: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans">
-      <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl overflow-hidden relative min-h-[844px] flex flex-col">
-
-        {/* Header */}
-        <div className="px-6 pt-12 pb-6 border-b border-white/30 bg-white/20">
-          <h1 className="text-xl font-bold flex items-center justify-between text-indigo-950">
-            <span>📊 分析简报</span>
-            <div className="flex bg-white/50 p-1 rounded-lg border border-white/60">
-                <button
-                className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors ${timeRange === 'week' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white/40'}`}
-                onClick={() => setTimeRange('week')}
-                >本周</button>
-                <button
-                className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors ${timeRange === 'month' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white/40'}`}
-                onClick={() => setTimeRange('month')}
-                >本月</button>
-                <button
-                className={`px-2 py-1 text-[10px] font-medium rounded-md transition-colors ${timeRange === 'all' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-white/40'}`}
-                onClick={() => setTimeRange('all')}
-                >全部</button>
-            </div>
-          </h1>
+    <div className="min-h-screen bg-[#F5F5F9] flex flex-col font-sans items-center py-8">
+      <div className="w-full max-w-[390px] mx-auto bg-[#FBFBFF] rounded-[40px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden relative min-h-[844px] flex flex-col border-[8px] border-black">
+        
+        {/* iOS Status Bar Mock */}
+        <div className="h-12 flex items-center justify-between px-6 pt-2 select-none relative z-10">
+          <div className="text-[14px] font-semibold text-gray-800 tracking-tight">6:00</div>
+          <div className="absolute left-1/2 -top-2 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-b-[20px]"></div>
+          <div className="flex items-center space-x-1.5 opacity-80">
+            <svg className="w-4 h-4 text-gray-800" fill="currentColor" viewBox="0 0 24 24"><path d="M2 22h20V2z"/></svg>
+            <svg className="w-4 h-4 text-gray-800" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h2v2h-2zm0-10h2v8h-2z"/></svg>
+            <svg className="w-5 h-5 text-gray-800" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 22 1.34-21.4 1.34-20.67V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-24">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <svg className="w-6 h-6 text-[#6B4BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <h1 className="text-2xl font-bold text-[#1C1D24] tracking-tight">学习Dashboard</h1>
+          </div>
+          <p className="text-[13px] text-gray-500 font-medium">账号: {userId || 'test_user_001'}</p>
+        </div>
+
+        {/* Content Scroll Area */}
+        <div className="flex-1 overflow-y-auto px-5 pb-32 space-y-5">
           
-          {/* 智能推荐卡片 */}
-          {recommendation && (
-            <div className="glass-card p-5 rounded-2xl border border-amber-200 bg-amber-50/50 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">
-                    {recommendation.priority === 'high' ? '高优先级' : recommendation.priority === 'medium' ? '推荐' : '可选'}
-                </div>
-                <h3 className="font-bold text-amber-950 flex items-center mb-1 mt-1 text-lg">
-                    🧠 智能推荐: {getModuleIcon(recommendation.recommended_module)} {recommendation.word || '继续学习'}
-                </h3>
-                <p className="text-sm text-amber-800/80 mb-3">{recommendation.reason}</p>
-                
-                <div className="flex items-center space-x-3 mb-4 text-[11px] text-amber-700 font-medium">
-                    <span className="bg-amber-100/80 px-2 py-1 rounded-md border border-amber-200/50">
-                        ⏱️ 预计 {Math.round(recommendation.estimated_time / 60)} 分钟
-                    </span>
-                    <span className="bg-amber-100/80 px-2 py-1 rounded-md border border-amber-200/50">
-                        🎯 置信度 {(recommendation.confidence * 100).toFixed(0)}%
-                    </span>
+          {/* 智能推荐 Card */}
+          {recommendation ? (
+            <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative">
+                {/* Header inside card */}
+                <div className="flex justify-between items-center mb-6">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-[#6B4BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                        <h3 className="font-bold text-[#1C1D24] text-[15px]">智能推荐</h3>
+                    </div>
+                    <div className="bg-gradient-to-r from-[#FF8B4B] to-[#FF6B2C] text-white text-[12px] font-bold px-3 py-1 rounded-full shadow-sm">
+                        {recommendation.priority === 'high' ? '高优先级' : recommendation.priority === 'medium' ? '中优先级' : '低优先级'}
+                    </div>
                 </div>
 
-                <div className="flex space-x-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => handleAcceptRecommendation(false)}
-                        className="flex-1 bg-white/60 border-amber-200 hover:bg-white text-amber-700 h-9 text-xs rounded-xl"
-                    >忽略</Button>
-                    <Button
-                        onClick={() => handleAcceptRecommendation(true)}
-                        className="flex-1 bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-500/20 h-9 text-xs rounded-xl"
-                    >开始学习</Button>
+                <div className="mb-4">
+                    <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-[#FFD700] text-sm">✨</span>
+                        <span className="text-[#6B4BFF] text-[13px] font-bold">新词学习</span>
+                    </div>
+                    <h2 className="text-[32px] font-bold text-[#1C1D24] leading-tight mb-4">
+                        {recommendation.word || '发生'}
+                    </h2>
+
+                    <div className="bg-[#FCFCFD] border border-[#F1F1F5] rounded-2xl p-4 flex items-center gap-3 mb-4">
+                        <span className="text-xl">💡</span>
+                        <p className="text-[13px] text-gray-600 font-medium">推荐学习新词汇，当前掌握程度较低</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mb-5">
+                        <div className="bg-[#FCFCFD] border border-[#F1F1F5] rounded-2xl p-4">
+                            <p className="text-[12px] text-gray-500 font-medium mb-1">推荐模块</p>
+                            <p className="text-[#6B4BFF] font-bold flex items-center gap-2 text-[15px]">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                                {resumeModuleLabel(recommendation.recommended_module)}
+                            </p>
+                        </div>
+                        <div className="bg-[#FCFCFD] border border-[#F1F1F5] rounded-2xl p-4">
+                            <p className="text-[12px] text-gray-500 font-medium mb-1">预计时间</p>
+                            <p className="text-[#6B4BFF] font-bold flex items-center gap-2 text-[15px]">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                约 {Math.round(recommendation.estimated_time / 60)} 分钟
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-[13px] font-bold text-gray-500">推荐匹配度</span>
+                            <span className="text-[15px] font-bold text-[#6B4BFF]">{Math.round(recommendation.confidence * 100)}%</span>
+                        </div>
+                        <div className="h-2.5 w-full bg-[#F5F5F9] rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-[#9073FF] to-[#6B4BFF] rounded-full" style={{ width: `${Math.round(recommendation.confidence * 100)}%` }}></div>
+                        </div>
+                    </div>
                 </div>
+
+                <Button
+                    onClick={() => handleAcceptRecommendation(true)}
+                    className="w-full bg-[#834BFF] hover:bg-[#6B2CEB] h-14 rounded-2xl text-[16px] font-bold text-white shadow-[0_8px_20px_rgba(131,75,255,0.3)] transition-all flex items-center justify-center gap-2"
+                >
+                    立即开始
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                </Button>
+            </div>
+          ) : (
+            <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative flex flex-col items-center justify-center min-h-[300px]">
+                 <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-3xl">🎉</div>
+                 <h3 className="font-bold text-[#1C1D24] text-lg mb-2">今日任务已完成</h3>
+                 <p className="text-gray-500 text-sm mb-6 text-center">您已经完成了所有的智能推荐任务，休息一下或者自由探索吧！</p>
+                 <Button
+                    onClick={() => router.push('/word-learning-entrance')}
+                    className="bg-[#834BFF] hover:bg-[#6B2CEB] px-8 h-12 rounded-2xl font-bold text-white shadow-[0_8px_20px_rgba(131,75,255,0.3)] transition-all"
+                >
+                    自由练习
+                </Button>
             </div>
           )}
 
-          {/* 当前学习上下文 */}
-          <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40">
-            <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-indigo-950 text-sm">📍 当前上下文</h3>
+          {/* 今日学习 Card */}
+          <div className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="flex items-center gap-2 mb-6">
+                <svg className="w-5 h-5 text-[#834BFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                <h3 className="font-bold text-[#1C1D24] text-[15px]">今日学习</h3>
             </div>
-            <div className="space-y-1.5 mb-3">
-                <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">最近词汇</span>
-                    <span className="font-medium text-indigo-900">{learningSession.word ?? '尚未选择'}</span>
+            
+            <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-[#FCFCFD] border border-[#F1F1F5] rounded-[20px] p-5 flex flex-col items-center justify-center text-center">
+                    <div className="text-[32px] font-bold text-[#6B4BFF] leading-tight mb-1">{dashboardData.overview.totalSessions}</div>
+                    <div className="text-[12px] text-gray-500 font-medium">总会话数</div>
                 </div>
-                <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">最近模块</span>
-                    <span className="font-medium text-indigo-900">{resumeModuleLabel(learningSession.module) ?? '未记录'}</span>
+                <div className="bg-[#FCFCFD] border border-[#F1F1F5] rounded-[20px] p-5 flex flex-col items-center justify-center text-center">
+                    <div className="text-[32px] font-bold text-[#00C48C] leading-tight mb-1">{formatAccuracy(dashboardData.overview.completionRate)}</div>
+                    <div className="text-[12px] text-gray-500 font-medium">综合完成率</div>
                 </div>
-                <div className="flex justify-between text-xs">
-                    <span className="text-gray-500">VKS 评级</span>
-                    <span className="font-medium text-indigo-900">{learningSession.vksLevel ?? '未记录'}</span>
+                <div className="bg-[#FCFCFD] border border-[#F1F1F5] rounded-[20px] p-5 flex flex-col items-center justify-center text-center col-span-2">
+                    <div className="text-[32px] font-bold text-[#FF8B4B] leading-tight mb-1">{formatTime(dashboardData.overview.totalStudyTime)}</div>
+                    <div className="text-[12px] text-gray-500 font-medium">总学习时长</div>
                 </div>
             </div>
-            <Button
-                size="sm"
-                disabled={!resumeModulePath}
-                onClick={() => {
-                  if (resumeModulePath) {
-                    router.push(resumeModulePath);
-                  }
-                }}
-                className="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 shadow-none border border-indigo-200 h-8 text-xs rounded-xl"
-            >继续当前学习</Button>
-          </div>
-
-          {/* 学习概览 Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40 flex flex-col items-center justify-center text-center">
-                <div className="text-2xl mb-1">📚</div>
-                <div className="text-xl font-bold text-indigo-950">{dashboardData.overview.totalSessions}</div>
-                <div className="text-[10px] text-gray-500 font-medium mt-1">会话总数</div>
-            </div>
-            <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40 flex flex-col items-center justify-center text-center">
-                <div className="text-2xl mb-1">⏰</div>
-                <div className="text-xl font-bold text-indigo-950">{formatTime(dashboardData.overview.totalStudyTime)}</div>
-                <div className="text-[10px] text-gray-500 font-medium mt-1">总学时</div>
-            </div>
-            <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40 flex flex-col items-center justify-center text-center">
-                <div className="text-2xl mb-1">📈</div>
-                <div className="text-xl font-bold text-indigo-950">{formatTime(dashboardData.overview.averageSessionTime)}</div>
-                <div className="text-[10px] text-gray-500 font-medium mt-1">均会话时长</div>
-            </div>
-            <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40 flex flex-col items-center justify-center text-center">
-                <div className="text-2xl mb-1">🏆</div>
-                <div className="text-xl font-bold text-indigo-950">{formatAccuracy(dashboardData.overview.completionRate)}</div>
-                <div className="text-[10px] text-gray-500 font-medium mt-1">完成率</div>
-            </div>
-          </div>
-
-          {/* 复习计划 */}
-          <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40">
-            <h3 className="font-bold text-indigo-950 text-sm mb-3">🔄 待复习</h3>
-            {dueReviews.length > 0 ? (
-              <div className="space-y-2">
-                {dueReviews.slice(0, 3).map((review) => (
-                  <div key={review.word_id} className="flex flex-col p-2.5 bg-white/50 border border-white/80 rounded-xl cursor-pointer hover:bg-white/70 transition-colors" onClick={() => router.push('/today-review')}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-indigo-600 bg-indigo-100/50 px-1.5 py-0.5 rounded">{getModuleIcon(review.recommended_module)}</span>
-                          <p className="font-bold text-sm text-indigo-950">{review.word}</p>
-                      </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${review.days_overdue > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                          {review.days_overdue > 0 ? `逾期 ${review.days_overdue} 天` : '今日待复习'}
-                      </span>
+            
+            <div className="bg-[#F8F9FA] rounded-[16px] p-4 flex items-center justify-between mt-2">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-50 rounded-full flex items-center justify-center">
+                        <span className="text-xl">🔄</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-indigo-100/50 rounded-full h-1.5 overflow-hidden">
-                            <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: `${review.mastery_level * 100}%` }}></div>
-                        </div>
-                        <span className="text-[10px] text-gray-500 font-medium w-6 text-right">{(review.mastery_level * 100).toFixed(0)}%</span>
+                    <div>
+                        <p className="text-[14px] font-bold text-[#1C1D24]">待复习词汇</p>
+                        <p className="text-[12px] text-gray-500 font-medium">{dueReviews.length} 个单词需要巩固</p>
                     </div>
-                  </div>
-                ))}
-                {dueReviews.length > 3 && (
-                  <Button variant="ghost" className="w-full text-xs text-indigo-600 mt-2 h-8" onClick={() => router.push('/today-review')}>
-                    查看其余 {dueReviews.length - 3} 个待复习词汇 →
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-6 bg-white/30 rounded-xl border border-white/50">
-                <div className="text-3xl mb-1">📅</div>
-                <p className="text-sm font-medium text-emerald-700">暂无待复习内容</p>
-                <p className="text-xs text-emerald-600/70">您已经完成所有复习任务！</p>
-              </div>
-            )}
-          </div>
-
-          {/* 掌握度分布 */}
-          <div className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40">
-            <h3 className="font-bold text-indigo-950 text-sm mb-4">掌握分布</h3>
-            <div className="space-y-4">
-              <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div>已掌握 (≥80%)
-                    </span>
-                    <span className="text-xs font-bold text-indigo-900">{dashboardData.masteryDistribution.mastered}</span>
-                  </div>
-                  <div className="w-full bg-white/50 rounded-full h-1.5 overflow-hidden border border-white/60">
-                      <div className="bg-emerald-500 h-1.5 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" style={{ width: `${(dashboardData.masteryDistribution.mastered / dashboardData.masteryDistribution.total) * 100 || 0}%` }}></div>
-                  </div>
-              </div>
-              
-              <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-amber-400"></div>学习中 (60-80%)
-                    </span>
-                    <span className="text-xs font-bold text-indigo-900">{dashboardData.masteryDistribution.learning}</span>
-                  </div>
-                  <div className="w-full bg-white/50 rounded-full h-1.5 overflow-hidden border border-white/60">
-                      <div className="bg-amber-400 h-1.5 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.5)]" style={{ width: `${(dashboardData.masteryDistribution.learning / dashboardData.masteryDistribution.total) * 100 || 0}%` }}></div>
-                  </div>
-              </div>
-              
-              <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-rose-400"></div>需加强 (&lt;60%)
-                    </span>
-                    <span className="text-xs font-bold text-indigo-900">{dashboardData.masteryDistribution.struggling}</span>
-                  </div>
-                  <div className="w-full bg-white/50 rounded-full h-1.5 overflow-hidden border border-white/60">
-                      <div className="bg-rose-400 h-1.5 rounded-full shadow-[0_0_8px_rgba(251,113,133,0.5)]" style={{ width: `${(dashboardData.masteryDistribution.struggling / dashboardData.masteryDistribution.total) * 100 || 0}%` }}></div>
-                  </div>
-              </div>
+                </div>
+                <Button 
+                    variant="ghost" 
+                    className="text-[#6B4BFF] font-bold hover:bg-indigo-50 px-3 py-1.5 rounded-xl h-auto"
+                    onClick={() => router.push('/today-review')}
+                >
+                    前往复习
+                </Button>
             </div>
           </div>
-
+          
         </div>
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/40 backdrop-blur-xl border-t border-white/50">
-          <div className="flex gap-2">
-            <Button 
-                variant="outline" 
-                onClick={() => router.push('/')}
-                className="flex-[0.8] bg-white/60 border-white/80 hover:bg-white text-gray-700 rounded-xl shadow-sm text-xs font-semibold h-10"
-            >首 页</Button>
-            <Button 
-                variant="outline" 
-                onClick={() => router.push('/phase2-demo')}
-                className="flex-[0.8] bg-white/60 border-white/80 hover:bg-white text-indigo-600 rounded-xl shadow-sm text-xs font-semibold h-10"
-            >演 示</Button>
-            <Button 
-                onClick={() => router.push('/word-learning-entrance')}
-                className="flex-[1.5] bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-600/20 text-xs font-semibold h-10"
-            >开始学习</Button>
-          </div>
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center z-20 pointer-events-none">
+          <Button 
+              variant="outline" 
+              onClick={() => router.push('/')}
+              className="bg-white/90 backdrop-blur-md border border-gray-100 hover:bg-white text-gray-500 rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.06)] text-[14px] font-bold px-8 h-12 pointer-events-auto"
+          >
+              返回主会场
+          </Button>
         </div>
+
+        {/* Home Indicator */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-black rounded-full z-20"></div>
 
       </div>
     </div>
