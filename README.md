@@ -34,19 +34,27 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
   </tr>
   <tr>
     <td align="center"><b>VKS Assessment</b></td>
-    <td align="center"><b>Vocabulary Exercise</b></td>
+    <td align="center"><b>Character Learning</b></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
-    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="Vocabulary Exercise - Interactive quiz with definition matching"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Character Learning</b></td>
-    <td></td>
-  </tr>
-  <tr>
     <td><img src="docs/screenshots/character-learning.png" width="400" alt="Character Learning - Chinese character breakdown with pinyin and definitions"></td>
-    <td></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Vocabulary Learning</b></td>
+    <td align="center"><b>Collocation Learning</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/word-learning.png" width="400" alt="Vocabulary Learning - Deep dive into word meanings and usage"></td>
+    <td><img src="docs/screenshots/collocation-learning.png" width="400" alt="Collocation Learning - Mastering native-like phrasing combinations"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Sentence Learning</b></td>
+    <td align="center"><b>Vocabulary Exercise</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/sentence-learning.png" width="400" alt="Sentence Learning - Contextual reading and listening practice"></td>
+    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="Vocabulary Exercise - Interactive quizzes with immediate feedback"></td>
   </tr>
 </table>
 

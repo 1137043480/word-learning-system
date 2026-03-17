@@ -41,19 +41,27 @@
   </tr>
   <tr>
     <td align="center"><b>VKS词汇测试</b></td>
-    <td align="center"><b>词汇练习</b></td>
+    <td align="center"><b>字符学习</b></td>
   </tr>
   <tr>
     <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS测试 - 词汇知识量表评估"></td>
-    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="词汇练习 - 释义匹配题"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>字符学习</b></td>
-    <td></td>
-  </tr>
-  <tr>
     <td><img src="docs/screenshots/character-learning.png" width="400" alt="字符学习 - 汉字拆解与释义"></td>
-    <td></td>
+  </tr>
+  <tr>
+    <td align="center"><b>词汇学习</b></td>
+    <td align="center"><b>搭配学习</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/word-learning.png" width="400" alt="词汇学习 - 深入理解词义与用法"></td>
+    <td><img src="docs/screenshots/collocation-learning.png" width="400" alt="搭配学习 - 掌握地道词组组合"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>例句学习</b></td>
+    <td align="center"><b>词汇练习</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/sentence-learning.png" width="400" alt="例句学习 - 真实语境阅读与听力"></td>
+    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="词汇练习 - 带有即时反馈的互动测试"></td>
   </tr>
 </table>
 
