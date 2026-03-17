@@ -28,6 +28,29 @@
 
 ---
 
+## 📸 系统截图
+
+<table>
+  <tr>
+    <td align="center"><b>首页</b></td>
+    <td align="center"><b>学习Dashboard</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/home-page.png" width="400" alt="首页 - 移动端优先的欢迎界面"></td>
+    <td><img src="docs/screenshots/learning-dashboard.png" width="400" alt="学习Dashboard - AI智能推荐"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>VKS词汇测试</b></td>
+    <td align="center"><b>词汇练习</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS测试 - 词汇知识量表评估"></td>
+    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="词汇练习 - 释义匹配题"></td>
+  </tr>
+</table>
+
+---
+
 ## 🚀 快速启动
 
 ### 1. 环境准备

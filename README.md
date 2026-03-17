@@ -21,6 +21,29 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 
 ---
 
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td align="center"><b>Home Page</b></td>
+    <td align="center"><b>Learning Dashboard</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/home-page.png" width="400" alt="Home Page - Mobile-first welcome interface with navigation to all learning modules"></td>
+    <td><img src="docs/screenshots/learning-dashboard.png" width="400" alt="Learning Dashboard - AI-powered smart recommendations with confidence scoring"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>VKS Assessment</b></td>
+    <td align="center"><b>Vocabulary Exercise</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
+    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="Vocabulary Exercise - Interactive quiz with definition matching"></td>
+  </tr>
+</table>
+
+---
+
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
