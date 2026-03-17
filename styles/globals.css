@@ -74,3 +74,21 @@
     @apply inline-block bg-green-500 text-white px-4 py-2 rounded-md mt-5 no-underline hover:bg-green-600;
   }
 }
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-sm border border-white/50 shadow-sm hover:shadow-md hover:bg-white/90 transition-all duration-300;
+  }
+
+  .modern-gradient-bg {
+    @apply bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50;
+  }
+  
+  .text-glow {
+    text-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+}

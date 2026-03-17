@@ -34,7 +34,7 @@ export interface WordSummary {
   definition: string;
 }
 
-export type ExerciseQuestionType = 'definition' | 'collocation' | 'fill_word';
+export type ExerciseQuestionType = 'definition' | 'collocation' | 'fill_word' | 'choose_word';
 
 export interface ExerciseQuestionPayload {
   id: string;

@@ -1,0 +1,166 @@
+🚀 启动第二阶段自适应学习API服务...
+✅ 数据库表创建成功
+📊 生成测试数据...
+⚠️  测试数据生成失败: No module named 'simple_test_data'
+✅ 自适应推荐引擎初始化成功
+
+📍 第二阶段API服务信息:
+   🎯 智能推荐引擎:  ✅ 已启用
+   🔄 间隔重复算法:  ✅ 已启用
+   📊 学习分析功能: ✅ 已启用
+   🌐 服务地址: http://localhost:5004
+
+📋 主要新功能:
+   - GET  /api/adaptive/recommendation/<user_id> - 个性化推荐
+   - GET  /api/review/user/<user_id>/due - 到期复习
+   - GET  /api/analytics/user/<user_id>/dashboard - 学习dashboard
+   - POST /api/adaptive/feedback - 推荐反馈
+ * Serving Flask app 'app_phase2'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5004
+[33mPress CTRL+C to quit[0m
+app_phase2.py:440: LegacyAPIWarning: The Query.get() method is considered legacy as of the 1.x series of SQLAlchemy and becomes a legacy construct in 2.0. The method is now available as Session.get() (deprecated since: 2.0) (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
+  word = Word.query.get(word_id)
+127.0.0.1 - - [17/Mar/2026 15:46:30] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 15:46:57] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 15:47:24] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 15:47:24] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 15:47:24] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 15:47:24] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 15:47:25] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:01:15] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:01:15] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:01:15] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:01:15] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:02:51] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:02:51] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:02:51] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:02:51] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:03:19] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:19] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:03:33] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:33] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:03:33] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:33] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:33] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:33] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:49] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:49] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:03:49] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:03:49] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:03:49] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:01] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:01] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:01] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:05:01] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:01] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:01] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:44] "OPTIONS /api/learning/exercise/record HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:05:44] "[31m[1mPOST /api/learning/exercise/record HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:07:35] "OPTIONS /api/learning/exercise/record HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:07:36] "[31m[1mPOST /api/learning/exercise/record HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:09:41] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:10:53] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:11:07] "OPTIONS /api/learning/exercise/record HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:11:07] "[31m[1mPOST /api/learning/exercise/record HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:12:30] "OPTIONS /api/learning/exercise/record HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:12:30] "[31m[1mPOST /api/learning/exercise/record HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:23:39] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:23:39] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:23:39] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:23:39] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:00] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:24:18] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:21] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:25] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:25] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:25] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:25] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:27] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:27] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:27] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:27] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:27] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:28] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:30] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:30] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:30] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:30] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:30] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:30] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:47] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:47] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:48] "OPTIONS /api/learning/session/start HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:48] "GET /word/1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:48] "GET /api/users?limit=200 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:48] "[31m[1mPOST /api/learning/session/start HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:25:48] "GET /api/learning/word/1/exercises?limit=5&options=4 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:25:48] "GET /api/review/user/test_user_001/due?limit=1 HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:26:18] "OPTIONS /api/learning/exercise/record HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:26:18] "[31m[1mPOST /api/learning/exercise/record HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:30] "OPTIONS /api/learning/exercise/record HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:30] "[31m[1mPOST /api/learning/exercise/record HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:32] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:32] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "OPTIONS /api/learning/session/end HTTP/1.1" 200 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+127.0.0.1 - - [17/Mar/2026 16:27:44] "[31m[1mPOST /api/learning/session/end HTTP/1.1[0m" 401 -
+/Library/Frameworks/Python.framework/Versions/3.8/lib/python3.8/multiprocessing/resource_tracker.py:216: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
