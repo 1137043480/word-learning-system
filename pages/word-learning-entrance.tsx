@@ -240,110 +240,115 @@ export default function Component() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] overflow-hidden shadow-xl relative">
-        <div className="absolute inset-0 bg-black rounded-[40px]">
-          <div className="absolute top-0 left-0 right-0 bottom-0 bg-orange-100 rounded-[32px] m-3 overflow-hidden">
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-3xl"></div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="w-[320px] h-[640px] bg-black rounded-[40px] p-2 shadow-2xl relative">
+        <div className="absolute inset-0 m-2 rounded-[32px] overflow-hidden modern-gradient-bg">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl z-50"></div>
 
-            <div className="relative z-10 flex justify-between items-center px-4 pt-1.5 text-black text-xs h-6">
-              <span>6:00 PM</span>
-              <div className="flex items-center space-x-1">
-                <Signal size={14} />
-                <Wifi size={14} />
-                <Battery size={14} />
-              </div>
+          <div className="relative z-40 flex justify-between items-center px-4 pt-1.5 text-gray-800 text-xs h-6">
+            <span className="font-medium tracking-wide text-[10px]">6:00</span>
+            <div className="flex items-center space-x-1">
+              <Signal size={12} strokeWidth={2.5} />
+              <Wifi size={12} strokeWidth={2.5} />
+              <Battery size={14} strokeWidth={2.5} />
             </div>
-
-            <div className="h-full pt-6 pb-4 flex flex-col">
-              <div className="bg-orange-200 p-3">
-                <h1 className="text-lg font-semibold">word learning</h1>
-                <p className="text-xs text-gray-700 mt-1">
-                  当前账号：{currentUser?.username ? `${currentUser.username} (${userId})` : userId}
+          </div>
+          <div className="h-full pt-10 pb-4 flex flex-col relative z-20">
+            <div className="px-5 mb-4">
+                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight">Word Learning</h1>
+                <p className="text-[10px] text-gray-500 mt-0.5 font-medium">
+                  {currentUser?.username ? `${currentUser.username} (${userId})` : userId}
                 </p>
-                <div className="text-[11px] text-gray-600 mt-1 space-y-0.5">
-                  <p>累计掌握词汇：{currentUser?.wordsStudied ?? 0}</p>
+                <div className="text-[10px] text-gray-500 mt-2 space-y-1 bg-white/40 p-2.5 rounded-xl border border-white/60">
+                  <div className="flex justify-between items-center">
+                    <span>词汇量: {currentUser?.wordsStudied ?? 0}</span>
+                    {learningSession.word && (
+                      <span className="text-indigo-600 font-semibold">{activeModuleLabel || '练习'} · {learningSession.word}</span>
+                    )}
+                  </div>
                   {recommendationMessage && (
-                    <p className="text-green-600 font-semibold">
+                    <p className="text-emerald-600 font-semibold mt-1">
                       💡 {recommendationMessage}
                     </p>
                   )}
-                  {learningSession.word && (
-                    <p>
-                      当前学习：{activeModuleLabel || '练习'} · 词汇 {learningSession.word}
-                    </p>
-                  )}
-                  {learningSession.lastUpdated && (
-                    <p>最近操作：{new Date(learningSession.lastUpdated).toLocaleString()}</p>
-                  )}
-                  {!learningSession.lastUpdated && currentUser?.lastStudied && (
-                    <p>最近学习：{new Date(currentUser.lastStudied).toLocaleString()}</p>
-                  )}
-                  {!learningSession.word && currentUser?.lastSession?.word && (
-                    <p>
-                      上次模块：{lastModuleLabel || currentUser.lastSession.moduleType || 'unknown'} · 词汇 {currentUser.lastSession.word}
-                    </p>
-                  )}
                 </div>
-                <div className="mt-2 space-x-2">
+                <div className="mt-3 flex gap-2">
                   <Button
                     size="sm"
                     onClick={() => router.push('/learning-dashboard')}
-                    className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs px-3 py-1 h-auto"
+                    className="flex-1 bg-white/60 text-indigo-700 hover:bg-white/80 text-[10px] h-8 rounded-lg shadow-sm border border-white/50"
                   >
-                    📊 Dashboard
+                    Dashboard
                   </Button>
                   <Button
                     size="sm"
                     onClick={() => router.push('/today-review')}
-                    className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1 h-auto"
+                    className="flex-1 bg-white/60 text-rose-600 hover:bg-white/80 text-[10px] h-8 rounded-lg shadow-sm border border-white/50"
                   >
-                    ⏰ 复习
+                    今日复习
                   </Button>
                 </div>
               </div>
-              <div className="flex-1 p-3 flex flex-col justify-between overflow-y-auto">
-                <div className="space-y-3">
-                  <div className="bg-white p-3 rounded-lg shadow">
-                    <p className="text-base mb-2">How about you know {DEFAULT_WORD_NAME}?</p>
-                    <p className="text-xs text-gray-600">Please choose one choice below and continue to next page.</p>
-                    {selectedOption && (
-                      <p className="text-xs text-green-600 mt-1">已选择: {selectedOption}</p>
-                    )}
+              
+              <div className="flex-1 px-5 pb-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
+                <div className="space-y-4">
+                  <div className="glass-panel p-4 rounded-2xl">
+                    <p className="text-[14px] font-bold text-gray-800 mb-1 leading-snug">How about you know {DEFAULT_WORD_NAME}?</p>
+                    <p className="text-[12px] text-gray-500 font-medium">Please choose one choice below and continue to next page.</p>
                   </div>
-                  <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-2">
+                  
+                  <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-2.5">
                     {learningOptions.map((option) => (
-                      <div key={option.value} className="flex items-center bg-white p-2.5 rounded-lg shadow hover:bg-gray-50 cursor-pointer">
-                        <RadioGroupItem value={option.value} id={option.value} className="mr-2" />
-                        <Label htmlFor={option.value} className="text-xs flex-1 cursor-pointer">{option.text}</Label>
+                      <div 
+                        key={option.value} 
+                        onClick={() => handleOptionChange(option.value)}
+                        className={`flex items-center p-3 rounded-xl cursor-pointer transition-all duration-300 border ${
+                          selectedOption === option.value 
+                            ? 'bg-indigo-50/80 border-indigo-200 shadow-md transform scale-[1.02]' 
+                            : 'glass-card'
+                        }`}
+                      >
+                        <RadioGroupItem 
+                          value={option.value} 
+                          id={option.value} 
+                          className={`mr-3 border-gray-300 ${selectedOption === option.value ? 'border-indigo-500 text-indigo-600' : ''}`} 
+                        />
+                        <Label htmlFor={option.value} className={`text-[11px] flex-1 cursor-pointer font-medium leading-relaxed ${
+                          selectedOption === option.value ? 'text-indigo-900' : 'text-gray-700'
+                        }`}>
+                          {option.text}
+                        </Label>
                       </div>
                     ))}
                   </RadioGroup>
-                  {recommendationMessage && (
-                    <div className="p-2 text-xs text-green-600 bg-green-50 rounded">
-                      {recommendationMessage}
-                    </div>
-                  )}
+                  
                   {recommendationError && (
-                    <div className="p-2 text-xs text-red-600 bg-red-50 rounded">
+                    <div className="p-3 text-[10px] text-rose-600 bg-rose-50/80 backdrop-blur-sm rounded-xl border border-rose-100">
                       {recommendationError}
                     </div>
                   )}
                 </div>
+                
                 <Button
                   onClick={handleContinue}
                   disabled={!selectedOption || isSubmitting}
-                  className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white py-3 text-base rounded-lg mt-3"
+                  className="w-full relative group overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 disabled:from-gray-300 disabled:to-gray-300 hover:shadow-lg disabled:shadow-none text-white py-6 text-sm font-bold rounded-2xl mt-4 border-none transition-all duration-300"
                 >
-                  {isSubmitting ? '处理中...' : 'CONTINUE'}
+                  <span className="relative z-10 tracking-wider text-glow">{isSubmitting ? '处理中...' : 'CONTINUE'}</span>
+                  {!(!selectedOption || isSubmitting) && (
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-white transition-opacity duration-300"></div>
+                  )}
                 </Button>
               </div>
             </div>
 
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-black rounded-full"></div>
+            {/* Decorative blurs */}
+            <div className="absolute top-20 -right-10 w-40 h-40 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 pointer-events-none z-10"></div>
+            <div className="absolute bottom-20 -left-10 w-40 h-40 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-40 pointer-events-none z-10"></div>
+
           </div>
         </div>
       </div>
-    </div>
   );
 }
+

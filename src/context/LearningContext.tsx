@@ -101,7 +101,7 @@ const mergeUser = (base: LearningUser | undefined, incoming: LearningUser): Lear
 const sortUsers = (users: LearningUser[]) =>
   users.slice().sort((a, b) => a.userId.localeCompare(b.userId));
 
-export const LearningProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const LearningProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const [userId, setUserIdState] = useState<string>(() => readInitialUserId());
   const [availableUsers, setAvailableUsers] = useState<LearningUser[]>(() => readInitialUsers());
   const [apiBaseUrl, setApiBaseUrlState] = useState<string>(() => getApiBaseUrl());

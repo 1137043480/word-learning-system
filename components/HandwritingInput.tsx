@@ -90,114 +90,40 @@ export default function HandwritingInput({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-4 space-y-3">
-      <div className="flex justify-between items-center">
-        <h3 className="font-semibold text-gray-700">
-          {useKeyboard ? '键盘输入' : '手写输入'}
-        </h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleToggleInput}
-          className="text-xs"
-        >
-          切换到{useKeyboard ? '手写' : '键盘'}
-        </Button>
+    <div className="flex flex-col items-center mt-4">
+      <div
+        className="bg-gray-200 rounded-sm overflow-hidden mb-4"
+        style={{ width: `${width}px`, height: `${height}px` }}
+      >
+        <SignatureCanvas
+          ref={signatureRef}
+          canvasProps={{
+            width: width,
+            height: height,
+            className: 'w-full h-full',
+          }}
+          backgroundColor="transparent"
+          penColor="black"
+          minWidth={2}
+          maxWidth={4}
+          onEnd={() => setIsEmpty(false)}
+        />
       </div>
 
-      {useKeyboard ? (
-        // 键盘输入模式
-        <div className="space-y-3">
-          <input
-            type="text"
-            value={keyboardInput}
-            onChange={(e) => setKeyboardInput(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleSubmit();
-              }
-            }}
-            placeholder={placeholder}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            autoFocus
-          />
-        </div>
-      ) : (
-        // 手写输入模式
-        <div className="space-y-3">
-          <div
-            className="border-2 border-dashed border-gray-300 rounded-md overflow-hidden bg-gray-50"
-            style={{ width: `${width}px`, height: `${height}px` }}
-          >
-            <SignatureCanvas
-              ref={signatureRef}
-              canvasProps={{
-                width: width,
-                height: height,
-                className: 'signature-canvas',
-              }}
-              backgroundColor="rgba(255, 255, 255, 1)"
-              penColor="black"
-              minWidth={2}
-              maxWidth={4}
-            />
-          </div>
-
-          {isEmpty && (
-            <p className="text-xs text-gray-400 text-center">
-              {placeholder}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* 控制按钮 */}
-      <div className="flex gap-2 justify-end">
-        {!useKeyboard && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClear}
-            disabled={isEmpty}
-            className="flex items-center gap-1"
-          >
-            <Eraser size={16} />
-            清除
-          </Button>
-        )}
-
-        {onCancel && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onCancel}
-            className="flex items-center gap-1"
-          >
-            <X size={16} />
-            取消
-          </Button>
-        )}
-
+      <div className="flex w-full gap-3 justify-center" style={{ width: `${width}px` }}>
         <Button
-          variant="default"
-          size="sm"
+          variant="outline"
+          onClick={handleClear}
+          className="flex-1 h-10 rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-[15px] font-medium"
+        >
+          Rewrite
+        </Button>
+        <Button
           onClick={handleSubmit}
-          disabled={useKeyboard ? !keyboardInput.trim() : isEmpty}
-          className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600"
+          className="flex-1 h-10 rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 text-[15px] font-medium shadow-sm"
         >
-          <Check size={16} />
-          提交
+          Finish
         </Button>
-      </div>
-
-      {/* 提示信息 */}
-      <div className="text-xs text-gray-500 space-y-1">
-        <p>💡 提示：</p>
-        <ul className="list-disc list-inside space-y-0.5 ml-2">
-          <li>手写模式：在框内写字后点击"提交"</li>
-          <li>键盘模式：直接输入文字，按Enter或点击"提交"</li>
-          <li>可随时切换输入模式</li>
-        </ul>
       </div>
     </div>
   );

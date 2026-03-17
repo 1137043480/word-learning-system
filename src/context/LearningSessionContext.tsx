@@ -65,7 +65,7 @@ const persistSessionToStorage = (userId: string, session: LearningSessionState) 
   }
 };
 
-export const LearningSessionProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { userId } = useLearningContext();
   const [session, setSession] = useState<LearningSessionState>(() => loadSessionFromStorage(userId));
 

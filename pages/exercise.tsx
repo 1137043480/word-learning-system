@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,7 @@ import type { ExerciseQuestionPayload } from '@/src/lib/types';
 import { useLearningContext } from '@/src/context/LearningContext';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
+import { useWordData } from '@/hooks/useWordData';
 import ReviewReminder from '@/components/ReviewReminder';
 import HandwritingInput from '@/components/HandwritingInput';
 
@@ -19,6 +21,9 @@ type ExerciseType = ExerciseQuestionPayload['type'];
 type ExerciseQuestion = ExerciseQuestionPayload;
 
 const Exercise = () => {
+  const router = useRouter();
+  const isReviewMode = router.query.mode === 'review';
+  const isTestMode = router.query.mode === 'test';
   const { userId } = useLearningContext();
   const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
   const initialWordId = learningSession.wordId ?? DEFAULT_WORD_ID;
@@ -38,6 +43,9 @@ const Exercise = () => {
   const [wordDefinition, setWordDefinition] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Need the full word data to render the detailed feedback (character breakdown, pinyin, etc)
+  const { word } = useWordData({ initialWordId: wordId });
 
   const {
     pageTracking,
@@ -294,7 +302,11 @@ const Exercise = () => {
 
     await endSession(true);
 
-    alert('练习完成！');
+    if (next) {
+      goTo(next.key);
+    } else {
+      router.push('/learning-dashboard-simple');
+    }
   };
 
   const handleRetry = () => {
@@ -308,6 +320,8 @@ const Exercise = () => {
         return '词汇释义题';
       case 'collocation':
         return '词汇搭配题';
+      case 'choose_word':
+        return '易混淆词辨析题';
       case 'fill_word':
         return '词汇填词题';
       default:
@@ -344,163 +358,261 @@ const Exercise = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] overflow-hidden shadow-xl relative">
-        {/* iPhone frame */}
-        <div className="absolute inset-0 bg-black rounded-[40px]">
-          {/* Screen */}
-          <div className="absolute top-0 left-0 right-0 bottom-0 bg-orange-100 rounded-[32px] m-2 overflow-hidden">
-            {/* Notch */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl"></div>
-            
-            {/* Status Bar */}
-            <div className="relative z-10 flex justify-between items-center px-4 pt-1.5 text-black text-xs h-6">
-              <span>6:00 PM</span>
-              <div className="flex items-center space-x-1">
-                <Signal size={14} />
-                <Wifi size={14} />
-                <Battery size={14} />
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+      <div className="w-[320px] h-[640px] bg-black rounded-[40px] p-2 shadow-2xl relative">
+        {/* Screen */}
+        <div className="absolute inset-0 m-2 rounded-[32px] overflow-hidden modern-gradient-bg">
+          {/* Notch */}
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl z-50"></div>
+          
+          {/* Status Bar */}
+          <div className="relative z-40 flex justify-between items-center px-4 pt-1.5 text-gray-800 text-xs h-6">
+            <span className="font-medium tracking-wide text-[10px]">6:00</span>
+            <div className="flex items-center space-x-1">
+              <Signal size={12} strokeWidth={2.5} />
+              <Wifi size={12} strokeWidth={2.5} />
+              <Battery size={14} strokeWidth={2.5} />
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="h-full pt-10 pb-6 flex flex-col relative z-20">
+            <div className="px-5 mb-2">
+              <div className="flex justify-between items-center mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={!previous}
+                  className="h-8 px-2 bg-transparent hover:bg-white/20 text-indigo-900 rounded-lg text-[10px] shadow-none border border-transparent"
+                  onClick={() => {
+                    if (!previous) return;
+                    trackEvent('nav_previous', 'navigation', { targetModule: previous.key });
+                    goTo(previous.key);
+                  }}
+                >
+                  ← {previous ? previous.label : '上一模块'}
+                </Button>
+                <h1 className="text-[14px] font-bold text-gray-800 tracking-tight">
+                  {isTestMode ? 'word test' : (isReviewMode ? 'word review' : 'word exercise')}
+                </h1>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={!next}
+                  className="h-8 px-2 bg-transparent hover:bg-white/20 text-indigo-900 rounded-lg text-[10px] shadow-none border border-transparent"
+                  onClick={() => {
+                    if (!next) return;
+                    trackEvent('nav_next', 'navigation', { targetModule: next.key });
+                    goTo(next.key);
+                  }}
+                >
+                  {next ? next.label : '结束'} →
+                </Button>
               </div>
             </div>
-
-            {/* Content */}
-            <div className="h-full pt-6 pb-4 flex flex-col">
-              <div className="bg-orange-200 p-3 space-y-1">
-                <div className="flex justify-between items-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={!previous}
-                    onClick={() => {
-                      if (!previous) return;
-                      trackEvent('nav_previous', 'navigation', { targetModule: previous.key });
-                      goTo(previous.key);
-                    }}
-                  >
-                    ← {previous ? previous.label : '上一模块'}
-                  </Button>
-                  <h1 className="text-lg font-semibold">词汇练习</h1>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={!next}
-                    onClick={() => {
-                      if (!next) return;
-                      trackEvent('nav_next', 'navigation', { targetModule: next.key });
-                      goTo(next.key);
-                    }}
-                  >
-                    {next ? next.label : '结束'} →
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-600 truncate">当前词汇：{wordLabel}</p>
-                <p className="text-[11px] text-gray-600">
-                  模块：{resolveModuleLabel('exercise')} · {getQuestionTypeTitle(currentQuestion.type)} ({questionIndex + 1}/{exerciseQuestions.length})
-                </p>
-                <p className="text-[11px] text-gray-500 truncate">{wordDefinition}</p>
-              </div>
-              
-              <div className="flex-1 p-3 flex flex-col justify-between overflow-y-auto">
+            
+            <div className="flex-1 px-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
                 <div className="space-y-3">
                   <ReviewReminder userId={userId} showInline={true} />
                   
-                  {/* 题目区域 */}
-                  <div className="bg-white p-3 rounded-lg shadow">
-                    <div className="flex justify-between items-center mb-2">
-                      <h2 className="text-base font-bold">
-                        {currentQuestion.type === 'definition' ? 
-                          'Choose the word that matches this definition:' : 
-                          'Choose the correct word:'
-                        }
-                      </h2>
-                      {currentQuestion.type === 'definition' && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => playAudio('question')}
-                          className={audioPlaying === 'question' ? 'text-blue-500' : 'text-gray-500'}
-                        >
-                          <Volume2 size={16} />
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium mb-3">{currentQuestion.question}</p>
+                {/* Title and Audio play */}
+                <div>
+                  <h2 className="text-[16px] font-extrabold text-gray-900 leading-snug mb-3 tracking-wide">
+                    {questionIndex + 1}. {currentQuestion.type === 'definition' ? 
+                      'Find responding word.' : 
+                      currentQuestion.type === 'collocation' ? 'Find right collocation.' : 
+                      currentQuestion.type === 'choose_word' ? 'Choose right word.' :
+                      'Fill in right word.'
+                    }
+                  </h2>
+                  <div className="mb-6 flex gap-2 items-center">
+                    <p className="text-[14px] font-bold text-gray-800">
+                      {currentQuestion.type === 'definition' ? 
+                        `() ${currentQuestion.question}` : currentQuestion.question}
+                    </p>
+                    {currentQuestion.type === 'definition' && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => playAudio('question')}
+                        className={`h-7 w-7 p-0 rounded-full shrink-0 ${audioPlaying === 'question' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'}`}
+                      >
+                        <Volume2 size={14} />
+                      </Button>
+                    )}
                   </div>
-
-                  {/* 选项区域 */}
-                  {currentQuestion.type === 'fill_word' ? (
-                    // 填空题：使用手写输入
-                    <div className="bg-white p-3 rounded-lg shadow">
-                      <HandwritingInput
-                        onSubmit={(text) => {
-                          setFillInAnswer(text);
-                          // 自动提交
-                          setTimeout(() => {
-                            if (text.trim()) {
-                              handleSubmit();
-                            }
-                          }, 100);
-                        }}
-                        expectedAnswer={currentQuestion.correctAnswer}
-                        placeholder="请手写或输入答案"
-                        width={260}
-                        height={120}
-                      />
-                    </div>
-                  ) : (
-                    // 选择题：使用RadioGroup
-                    <div className="bg-white p-3 rounded-lg shadow">
-                      <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-2">
-                        {currentQuestion.options.map((option, index) => (
-                          <div key={index} className="flex items-center p-2 rounded border hover:bg-gray-50">
-                            <RadioGroupItem value={option} id={`option-${index}`} className="mr-3" />
-                            <Label htmlFor={`option-${index}`} className="text-sm flex-1 cursor-pointer">
-                              {String.fromCharCode(65 + index)}. {option}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                  )}
-
-                  {/* 反馈区域 */}
-                  {showFeedback && (
-                    <div className={`p-3 rounded-lg shadow ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
-                      <h3 className="font-semibold mb-2">
-                        {isCorrect ? '回答正确！✓' : '回答错误 ✗'}
-                      </h3>
-                      {!isCorrect && currentQuestion.feedback && (
-                        <div className="text-sm">
-                          <p className="font-medium mb-1">知识点:</p>
-                          <pre className="whitespace-pre-wrap text-xs">{currentQuestion.feedback}</pre>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
 
-                {/* 底部按钮 */}
-                {!showFeedback && currentQuestion.type !== 'fill_word' ? (
+                {/* Option / Input Area */}
+                {currentQuestion.type === 'fill_word' ? (
+                  <div className="flex flex-col items-center">
+                    {!showFeedback ? (
+                        <HandwritingInput
+                          onSubmit={(text) => {
+                            setFillInAnswer(text);
+                            setTimeout(() => {
+                              if (text.trim()) {
+                                const btnSubmit = document.getElementById("hidden-submit-btn");
+                                if (btnSubmit) btnSubmit.click();
+                              }
+                            }, 50);
+                          }}
+                          expectedAnswer={currentQuestion.correctAnswer}
+                          placeholder=""
+                          width={260}
+                          height={90}
+                        />
+                    ) : (
+                        <div className="w-[260px] h-[90px] bg-gray-200 rounded-sm mb-4 flex items-center justify-center relative">
+                           {/* Add drawing traces if needed or just display letter */}
+                           <span className="text-2xl font-bold text-gray-800">{fillInAnswer}</span>
+                           {!isCorrect && <div className="absolute top-2 right-2 text-red-500 font-bold">✗</div>}
+                           {isCorrect && <div className="absolute top-2 right-2 text-[#5bb018] font-bold">✓</div>}
+                        </div>
+                    )}
+                  </div>
+                ) : (
+                  // Multiple Choice Selection
+                  <div className="space-y-3 mt-2">
+                    {currentQuestion.options.map((option, index) => {
+                      let btnClass = "w-full text-left min-h-[48px] py-3.5 px-5 rounded-[18px] transition-all duration-300 flex items-center focus:outline-none justify-between ";
+                      const isSelected = selectedOption === option;
+                      
+                      if (showFeedback) {
+                        if (option === currentQuestion.correctAnswer) {
+                          btnClass += "bg-[#5bb018] border-none shadow-[0_4px_14px_0_rgba(91,176,24,0.39)] z-10 text-white font-bold";
+                        } else if (isSelected) {
+                          btnClass += "bg-rose-50 border-rose-300 shadow-sm text-rose-900 border font-bold";
+                        } else {
+                          btnClass += "glass-card text-gray-700 border-white/40 border font-bold";
+                        }
+                      } else {
+                        btnClass += isSelected 
+                          ? "bg-indigo-50 border-indigo-300 shadow-md ring-1 ring-indigo-200 z-10 text-indigo-900 border font-bold" 
+                          : "glass-card hover:-translate-y-0.5 text-gray-700 border-white/40 border font-bold";
+                      }
+                      
+                      const letter = String.fromCharCode(65 + index);
+                      // Custom rendering if the option is the Chinese Word (like '发生') vs english options
+                      const isHanziOption = /[\u4e00-\u9fa5]/.test(option);
+
+                      return (
+                        <div key={index}>
+                          <button
+                            disabled={showFeedback}
+                            onClick={() => handleOptionChange(option)}
+                            className={btnClass}
+                          >
+                            <span className="text-[14px] leading-snug break-words flex items-center">
+                              <span className={`mr-2.5 ${showFeedback && option === currentQuestion.correctAnswer ? 'text-white/90' : 'text-indigo-400'}`}>{letter}.</span> 
+                              <span>{option}</span>
+                            </span>
+                            {isHanziOption && !showFeedback && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className={`h-7 w-7 rounded-full ${isSelected ? 'text-indigo-600 hover:bg-indigo-100' : 'text-indigo-400 hover:text-indigo-600 hover:bg-white/50'}`}
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      playAudio(`option-${index}`);
+                                  }}
+                                >
+                                  <Volume2 size={14} />
+                                </Button>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                
+                {/* 统一的大画幅知识点嵌入式反馈面板 */}
+                {showFeedback && (
+                    <div className={`mt-5 px-5 py-5 -mx-5 border-t animate-in fade-in slide-in-from-bottom-2 duration-300 ${isCorrect ? 'bg-[#def6cd] border-[#baecbc]' : 'bg-[#ffe4e6] border-[#fbbabf]'}`}>
+                       
+                       <div className="flex items-center gap-2 mb-3">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center ${isCorrect ? 'bg-[#5bb018]' : 'bg-[#ef4444]'}`}>
+                            <span className="text-white text-lg font-bold">{isCorrect ? '✓' : '✗'}</span>
+                          </div>
+                          <span className={`font-extrabold text-[18px] tracking-wide ${isCorrect ? 'text-[#5bb018]' : 'text-[#ef4444]'}`}>
+                             {isCorrect ? 'Excellent!' : 'Incorrect'}
+                          </span>
+                       </div>
+                       
+                       {!isCorrect && (
+                          <div className="text-[#ef4444] font-extrabold text-[14px] mb-3">
+                             Correct answer: {currentQuestion.type === 'fill_word' ? currentQuestion.correctAnswer : String.fromCharCode(65 + currentQuestion.options.indexOf(currentQuestion.correctAnswer))}
+                          </div>
+                       )}
+
+                       {/* 内嵌知识点 */}
+                       {word && (
+                         <div className="mb-6">
+                           {currentQuestion.type === 'fill_word' || currentQuestion.type === 'choose_word' ? (
+                              <>
+                                 <p className="text-[14px] font-bold text-gray-800 leading-snug mb-1.5">
+                                   不愿意发生的事情终于出现了。['发生']
+                                 </p>
+                                 <p className="text-[13px] font-medium text-gray-700 leading-snug tracking-wider mb-1.5">
+                                   不/bù 愿意/yuànyì 发生/fāshēng 的/de 事情/shìqíng 终于/zhōngyú 出现/chūxiàn 了/le 。
+                                 </p>
+                                 <p className="text-[13px] font-normal text-gray-500 leading-snug">
+                                   What I didn't want to happen finally happened.
+                                 </p>
+                              </>
+                           ) : currentQuestion.type === 'collocation' ? (
+                              <p className="text-[14px] font-bold text-gray-800 leading-relaxed tracking-wide">
+                                 容易（三级） 发生 easy to happen
+                              </p>
+                           ) : (
+                             <p className="text-[14px] font-bold text-gray-800 leading-relaxed tracking-wide">
+                               <span className="mr-2 text-indigo-700">{wordLabel}</span> {word.pinyin} <br/>
+                               <span className="text-[13px] font-medium text-gray-600 font-mono mt-1 inline-block">{wordDefinition}</span>
+                             </p>
+                           )}
+                         </div>
+                       )}
+
+                       {/* 将原本外部底部的CONTINUE按钮嵌入到面板深处 */}
+                       <Button 
+                         onClick={handleContinue}
+                         className={`w-full h-[48px] rounded-[14px] border-none font-extrabold tracking-widest text-[14px] transition-all duration-300 text-white shadow-xl mb-4 ${
+                            isCorrect ? 'bg-[#5bb018] hover:bg-[#4d9711] shadow-[#5bb018]/30' : 'bg-[#ef4444] hover:bg-[#dc2626] shadow-[#ef4444]/30'
+                         }`}
+                       >
+                         CONTINUE
+                       </Button>
+                    </div>
+                )}
+              </div>
+              
+              {/* Spacer to guarantee scroll reaching the bottom properly */}
+              <div className="h-6 w-full shrink-0"></div>
+
+              {/* Support button element for implicit submits */}
+              <button id="hidden-submit-btn" className="hidden" onClick={handleSubmit}></button>
+
+              {/* 仅在未反馈时才在底部显示唯一的SUBMIT类提交按钮 */}
+              {!showFeedback && (
+                <div className="pt-2 pb-2 w-full z-30 px-5">
                   <Button 
                     onClick={handleSubmit}
-                    disabled={!selectedOption}
-                    className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white py-3 text-base rounded-lg mt-3"
+                    disabled={currentQuestion.type === 'fill_word' ? !fillInAnswer.trim() : !selectedOption}
+                    className="w-full h-[48px] rounded-xl border-none shadow-[0_4px_14px_0_rgba(91,176,24,0.39)] bg-[#5bb018] hover:bg-[#4d9711] disabled:bg-[#a6d189] disabled:shadow-none text-white font-bold tracking-widest text-[14px] transition-all duration-300"
                   >
-                    提交答案
+                    CONTINUE
                   </Button>
-                ) : showFeedback ? (
-                  <Button 
-                    onClick={handleContinue}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 text-base rounded-lg mt-3"
-                  >
-                    继续
-                  </Button>
-                ) : null}
-              </div>
+                </div>
+              )}
             </div>
 
+            {/* Decorative blurs */}
+            <div className="absolute top-1/4 -right-12 w-48 h-48 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
+            <div className="absolute bottom-1/4 -left-12 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
+
             {/* Home Indicator */}
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-black rounded-full"></div>
+            <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800/20 rounded-full backdrop-blur-xl z-50"></div>
           </div>
         </div>
       </div>
