@@ -47,9 +47,15 @@
     <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS测试 - 词汇知识量表评估"></td>
     <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="词汇练习 - 释义匹配题"></td>
   </tr>
+  <tr>
+    <td align="center"><b>字符学习</b></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/character-learning.png" width="400" alt="字符学习 - 汉字拆解与释义"></td>
+    <td></td>
+  </tr>
 </table>
-
----
 
 ## 🚀 快速启动
 

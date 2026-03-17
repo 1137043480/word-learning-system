@@ -40,9 +40,15 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
     <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
     <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="Vocabulary Exercise - Interactive quiz with definition matching"></td>
   </tr>
+  <tr>
+    <td align="center"><b>Character Learning</b></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/character-learning.png" width="400" alt="Character Learning - Chinese character breakdown with pinyin and definitions"></td>
+    <td></td>
+  </tr>
 </table>
-
----
 
 ## 🛠️ Tech Stack
 
