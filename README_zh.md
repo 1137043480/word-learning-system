@@ -36,40 +36,40 @@
     <td align="center"><b>学习Dashboard</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/home-page.png" width="400" alt="首页 - 移动端优先的欢迎界面"></td>
-    <td><img src="docs/screenshots/learning-dashboard.png" width="400" alt="学习Dashboard - AI智能推荐"></td>
+    <td><img src="docs/screenshots/home-page.png?v=2" width="400" alt="首页 - 移动端优先的欢迎界面"></td>
+    <td><img src="docs/screenshots/learning-dashboard.png?v=2" width="400" alt="学习Dashboard - AI智能推荐"></td>
   </tr>
   <tr>
     <td align="center"><b>VKS词汇测试</b></td>
     <td align="center"><b>字符学习</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/vks-assessment.png" width="400" alt="VKS测试 - 词汇知识量表评估"></td>
-    <td><img src="docs/screenshots/character-learning.png" width="400" alt="字符学习 - 汉字拆解与释义"></td>
+    <td><img src="docs/screenshots/vks-assessment.png?v=2" width="400" alt="VKS测试 - 词汇知识量表评估"></td>
+    <td><img src="docs/screenshots/character-learning.png?v=2" width="400" alt="字符学习 - 汉字拆解与释义"></td>
   </tr>
   <tr>
     <td align="center"><b>词汇学习</b></td>
     <td align="center"><b>搭配学习</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/word-learning.png" width="400" alt="词汇学习 - 深入理解词义与用法"></td>
-    <td><img src="docs/screenshots/collocation-learning.png" width="400" alt="搭配学习 - 掌握地道词组组合"></td>
+    <td><img src="docs/screenshots/word-learning.png?v=2" width="400" alt="词汇学习 - 深入理解词义与用法"></td>
+    <td><img src="docs/screenshots/collocation-learning.png?v=2" width="400" alt="搭配学习 - 掌握地道词组组合"></td>
   </tr>
   <tr>
     <td align="center"><b>例句学习</b></td>
     <td align="center"><b>词汇练习</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/sentence-learning.png" width="400" alt="例句学习 - 真实语境阅读与听力"></td>
-    <td><img src="docs/screenshots/vocabulary-exercise.png" width="400" alt="词汇练习 - 带有即时反馈的互动测试"></td>
+    <td><img src="docs/screenshots/sentence-learning.png?v=2" width="400" alt="例句学习 - 真实语境阅读与听力"></td>
+    <td><img src="docs/screenshots/vocabulary-exercise.png?v=2" width="400" alt="词汇练习 - 带有即时反馈的互动测试"></td>
   </tr>
   <tr>
     <td align="center"><b>间隔重复复习</b></td>
     <td align="center"><b>学习统计分析</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/today-review.png" width="400" alt="间隔重复复习 - 每日个性化复习任务"></td>
-    <td><img src="docs/screenshots/learning-stats.png" width="400" alt="学习统计分析 - 追踪学习进度与算法状态"></td>
+    <td><img src="docs/screenshots/today-review.png?v=2" width="400" alt="间隔重复复习 - 每日个性化复习任务"></td>
+    <td><img src="docs/screenshots/learning-stats.png?v=2" width="400" alt="学习统计分析 - 追踪学习进度与算法状态"></td>
   </tr>
 </table>
 
