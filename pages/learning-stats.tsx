@@ -8,8 +8,8 @@ import { buildApiUrl } from "@/src/lib/apiClient";
 const LearningStats = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [stats, setStats] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     fetchStats();
@@ -34,10 +34,10 @@ const LearningStats = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">加载统计数据中...</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
+        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading stats...</p>
         </div>
       </div>
     );
@@ -45,157 +45,167 @@ const LearningStats = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">❌ {error}</p>
-          <Button onClick={() => window.location.reload()}>重新加载</Button>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
+        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center px-6">
+          <div className="glass-card w-full p-6 text-center rounded-2xl border border-red-200 bg-red-50/50">
+            <p className="text-red-600 mb-4 font-medium">❌ {error}</p>
+            <Button 
+                onClick={() => window.location.reload()}
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-lg shadow-red-500/20"
+            >
+                Reload
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans">
+      <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl overflow-hidden relative min-h-[844px] flex flex-col">
         
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 学习统计</h1>
-          <p className="text-gray-600">系统学习数据概览</p>
+        {/* Header */}
+        <div className="px-6 pt-12 pb-6 border-b border-white/30 bg-white/20 text-center">
+          <h1 className="text-2xl font-bold flex items-center justify-center text-indigo-950">
+            📊 Learning Stats
+          </h1>
+          <p className="text-xs text-indigo-600 font-medium mt-1">
+            System Data Overview
+          </p>
         </div>
 
-        {stats && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl mb-2">📚</div>
-                  <div className="text-2xl font-bold">{stats.totalSessions}</div>
-                  <div className="text-sm text-gray-600">总学习会话</div>
-                </CardContent>
-              </Card>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4 pb-24">
+          {stats && (
+            <>
+              {/* KPIs Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="glass-card p-4 text-center rounded-2xl border border-white/60 bg-white/40">
+                  <div className="text-2xl mb-1">📚</div>
+                  <div className="text-xl font-bold text-indigo-950">{stats.totalSessions}</div>
+                  <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">Sessions</div>
+                </div>
 
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl mb-2">✏️</div>
-                  <div className="text-2xl font-bold">{stats.totalExercises}</div>
-                  <div className="text-sm text-gray-600">练习题目</div>
-                </CardContent>
-              </Card>
+                <div className="glass-card p-4 text-center rounded-2xl border border-white/60 bg-white/40">
+                  <div className="text-2xl mb-1">✏️</div>
+                  <div className="text-xl font-bold text-indigo-950">{stats.totalExercises}</div>
+                  <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">Exercises</div>
+                </div>
 
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl mb-2">📈</div>
-                  <div className="text-2xl font-bold">{(stats.averageMastery * 100).toFixed(1)}%</div>
-                  <div className="text-sm text-gray-600">平均掌握度</div>
-                </CardContent>
-              </Card>
+                <div className="glass-card p-4 text-center rounded-2xl border border-white/60 bg-white/40">
+                  <div className="text-2xl mb-1">📈</div>
+                  <div className="text-xl font-bold text-indigo-950">{(stats.averageMastery * 100).toFixed(1)}%</div>
+                  <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">Avg Mastery</div>
+                </div>
 
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl mb-2">⚡</div>
-                  <div className="text-2xl font-bold">{stats.averageEfficiency.toFixed(1)}</div>
-                  <div className="text-sm text-gray-600">学习效率</div>
-                </CardContent>
-              </Card>
-            </div>
+                <div className="glass-card p-4 text-center rounded-2xl border border-white/60 bg-white/40">
+                  <div className="text-2xl mb-1">⚡</div>
+                  <div className="text-xl font-bold text-indigo-950">{stats.averageEfficiency.toFixed(1)}</div>
+                  <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-1">Efficiency</div>
+                </div>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>🧠 智能引擎状态</span>
+              {/* Engine Status */}
+              <div className="glass-card p-5 rounded-2xl border border-white/60 bg-white/40">
+                <div className="flex flex-col mb-4">
+                  <h3 className="font-bold text-indigo-950 flex items-center mb-3">
+                    🧠 Engine Status
+                  </h3>
                   <div className="flex space-x-2">
-                    <Badge variant={stats.adaptiveEngine ? "default" : "secondary"}>
-                      {stats.adaptiveEngine ? "✅ 推荐引擎" : "❌ 推荐引擎"}
-                    </Badge>
-                    <Badge variant={stats.spacedRepetition ? "default" : "secondary"}>
-                      {stats.spacedRepetition ? "✅ 间隔重复" : "❌ 间隔重复"}
-                    </Badge>
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${stats.adaptiveEngine ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500"}`}>
+                      {stats.adaptiveEngine ? "✅ Adaptive" : "❌ Adaptive"}
+                    </span>
+                    <span className={`text-[10px] px-2 py-1 rounded-full font-semibold ${stats.spacedRepetition ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500"}`}>
+                      {stats.spacedRepetition ? "✅ Spaced Repetition" : "❌ Spaced Repetition"}
+                    </span>
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                </div>
+                
+                <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-3 text-blue-600">📊 数据统计</h4>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex justify-between">
-                        <span>近期会话:</span>
-                        <span className="font-medium">{stats.recentSessions}</span>
+                    <h4 className="font-semibold text-xs text-indigo-500 uppercase tracking-wider mb-2">📊 Data Stats</h4>
+                    <ul className="space-y-1.5 text-sm">
+                      <li className="flex justify-between items-center text-gray-600">
+                        <span>Recent Sessions:</span>
+                        <span className="font-bold text-indigo-950">{stats.recentSessions}</span>
                       </li>
-                      <li className="flex justify-between">
-                        <span>进度记录:</span>
-                        <span className="font-medium">{stats.progressRecords}</span>
-                      </li>
-                      <li className="flex justify-between">
-                        <span>平均掌握度:</span>
-                        <span className="font-medium">{(stats.averageMastery * 100).toFixed(1)}%</span>
-                      </li>
-                      <li className="flex justify-between">
-                        <span>学习效率:</span>
-                        <span className="font-medium">{stats.averageEfficiency.toFixed(2)}</span>
+                      <li className="flex justify-between items-center text-gray-600">
+                        <span>Progress Records:</span>
+                        <span className="font-bold text-indigo-950">{stats.progressRecords}</span>
                       </li>
                     </ul>
                   </div>
-                  <div>
-                    <h4 className="font-semibold mb-3 text-green-600">🎯 系统功能</h4>
-                    <ul className="space-y-2 text-sm">
-                      <li className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${stats.adaptiveEngine ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span>自适应推荐引擎</span>
+                  <div className="pt-2 border-t border-indigo-50/50">
+                    <h4 className="font-semibold text-xs text-emerald-500 uppercase tracking-wider mb-2 mt-2">🎯 Active Features</h4>
+                    <ul className="space-y-1.5 text-[13px] text-gray-600">
+                      <li className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${stats.adaptiveEngine ? 'bg-emerald-500' : 'bg-gray-300'}`}></div>
+                        Adaptive Recommendation
                       </li>
-                      <li className="flex items-center space-x-2">
-                        <div className={`w-2 h-2 rounded-full ${stats.spacedRepetition ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                        <span>间隔重复算法</span>
+                      <li className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${stats.spacedRepetition ? 'bg-emerald-500' : 'bg-gray-300'}`}></div>
+                        Spaced Repetition tracking
                       </li>
-                      <li className="flex items-center space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span>学习数据分析</span>
-                      </li>
-                      <li className="flex items-center space-x-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span>实时追踪系统</span>
+                      <li className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                        Learning Data Analytics
                       </li>
                     </ul>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>💡 使用建议</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-semibold text-blue-800 mb-2">🎯 开始学习</h4>
-                    <p className="text-sm text-blue-700">
-                      点击"开始自适应学习"体验VKS测试引导的个性化学习路径
+              {/* Suggestions */}
+              <div className="glass-card p-5 rounded-2xl border border-white/60 bg-white/40">
+                <h3 className="font-bold text-indigo-950 flex items-center mb-3">
+                  💡 Suggestions
+                </h3>
+                <div className="space-y-3">
+                  <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100">
+                    <h4 className="font-semibold text-indigo-800 text-sm mb-1">🎯 Start Learning</h4>
+                    <p className="text-xs text-indigo-700/80 leading-relaxed">
+                      Click "Start Learning" to experience the VKS assessment and personalized path.
                     </p>
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2">📊 查看分析</h4>
-                    <p className="text-sm text-green-700">
-                      访问"第二阶段功能演示"了解智能推荐和数据分析功能
+                  <div className="p-3 bg-emerald-50/80 rounded-xl border border-emerald-100">
+                    <h4 className="font-semibold text-emerald-800 text-sm mb-1">📊 Demo</h4>
+                    <p className="text-xs text-emerald-700/80 leading-relaxed">
+                      Visit "Phase 2 Demo" to explore the engine internals.
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
-
-        <div className="flex justify-center space-x-4">
-          <Button variant="outline" onClick={() => router.push('/')}>
-            返回首页
-          </Button>
-          <Button variant="outline" onClick={() => router.push('/phase2-demo')}>
-            功能演示
-          </Button>
-          <Button onClick={() => router.push('/word-learning-entrance')}>
-            开始学习
-          </Button>
+              </div>
+            </>
+          )}
         </div>
+
+        {/* Bottom Navigation */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/40 backdrop-blur-xl border-t border-white/50">
+          <div className="flex gap-2">
+            <Button 
+                variant="outline" 
+                onClick={() => router.push('/')}
+                className="flex-1 bg-white/60 border-white/80 hover:bg-white text-gray-700 rounded-xl shadow-sm text-xs font-semibold h-10"
+            >
+              Home
+            </Button>
+            <Button 
+                variant="outline" 
+                onClick={() => router.push('/phase2-demo')}
+                className="flex-1 bg-white/60 border-white/80 hover:bg-white text-indigo-600 rounded-xl shadow-sm text-xs font-semibold h-10"
+            >
+              Demo
+            </Button>
+            <Button 
+                onClick={() => router.push('/word-learning-entrance')}
+                className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md shadow-indigo-600/20 text-xs font-semibold h-10"
+            >
+              Start
+            </Button>
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -73,7 +73,7 @@ const TodayReview = () => {
 
   const getPriorityBadge = (score: number) => {
     if (score > 0.8) return <Badge variant="destructive">高优先级</Badge>;
-    if (score > 0.5) return <Badge className="bg-orange-500">中优先级</Badge>;
+    if (score > 0.5) return <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-sm">中优先级</Badge>;
     return <Badge variant="secondary">低优先级</Badge>;
   };
 
@@ -97,184 +97,142 @@ const TodayReview = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-[320px] h-[640px] bg-black rounded-[40px] overflow-hidden shadow-xl relative">
-          <div className="absolute inset-0 bg-black rounded-[40px]">
-            <div className="absolute top-0 left-0 right-0 bottom-0 bg-orange-100 rounded-[32px] m-3 overflow-hidden">
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-3xl"></div>
-              
-              <div className="h-full flex flex-col pt-8">
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600 text-sm">加载复习内容中...</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
+        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading reviews...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] overflow-hidden shadow-xl relative">
-        <div className="absolute inset-0 bg-black rounded-[40px]">
-          <div className="absolute top-0 left-0 right-0 bottom-0 bg-orange-100 rounded-[32px] m-3 overflow-hidden">
-            {/* Notch */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans">
+      <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl overflow-hidden relative min-h-[844px] flex flex-col">
+        {/* Header */}
+        <div className="px-6 pt-12 pb-6 flex items-center justify-between border-b border-white/30 bg-white/20">
+          <h1 className="text-xl font-bold flex items-center text-indigo-950">
+            <Clock className="mr-2 text-indigo-500" size={20} />
+            Today's Review
+          </h1>
+          <p className="text-xs text-indigo-600 font-medium">
+            {reviews.length} due
+          </p>
+        </div>
 
-            {/* Status Bar */}
-            <div className="relative z-10 flex justify-between items-center px-4 pt-1.5 text-black text-xs h-6">
-              <span>{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-              <div className="flex items-center space-x-1">
-                <Signal size={14} />
-                <Wifi size={14} />
-                <Battery size={14} />
-              </div>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+          {error && (
+            <div className="glass-card p-4 rounded-2xl border border-red-200 bg-red-50/50 text-center">
+              <p className="text-sm text-red-600 mb-3">❌ {error}</p>
+              <Button 
+                size="sm" 
+                onClick={fetchDueReviews}
+                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl"
+              >
+                Reload
+              </Button>
             </div>
+          )}
 
-            {/* Content */}
-            <div className="h-full pt-6 pb-4 flex flex-col">
-              {/* Header */}
-              <div className="bg-orange-200 p-3 pb-2">
-                <h1 className="text-xl font-bold flex items-center">
-                  <Clock className="mr-2" size={20} />
-                  今日复习
-                </h1>
-                <p className="text-xs text-gray-700 mt-1">
-                  账号：{userId} · {reviews.length} 个待复习词汇
-                </p>
+          {!error && reviews.length === 0 && (
+            <div className="glass-card p-8 rounded-2xl border border-indigo-100 bg-white/60 text-center mt-10">
+              <div className="text-5xl mb-4">🎉</div>
+              <p className="text-lg font-bold text-indigo-950 mb-2">Awesome!</p>
+              <p className="text-sm text-gray-600 mb-6">You've completed all your reviews for today.</p>
+              <Button 
+                onClick={() => router.push('/word-learning-entrance')}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 h-12"
+              >
+                Learn New Words
+              </Button>
+            </div>
+          )}
+
+          {reviews.map((review, index) => (
+            <div 
+              key={`${review.word_id}-${index}`}
+              className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40 hover:bg-white/60 transition-colors shadow-sm cursor-pointer"
+              onClick={() => setSelectedReview(review)}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg text-indigo-950">{review.word}</h3>
+                  <p className="text-xs text-gray-500">
+                    Reviewed {review.review_count} times
+                  </p>
+                </div>
+                {getPriorityBadge(review.priority_score)}
               </div>
-
-              {/* Review List */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                {error && (
-                  <Card className="border-red-300 bg-red-50">
-                    <CardContent className="p-3">
-                      <p className="text-xs text-red-600">❌ {error}</p>
-                      <Button 
-                        size="sm" 
-                        onClick={fetchDueReviews}
-                        className="mt-2 w-full"
-                      >
-                        重新加载
-                      </Button>
-                    </CardContent>
-                  </Card>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">Mastery</span>
+                  <span className={`font-semibold ${getMasteryColor(review.mastery_level)}`}>
+                    {(review.mastery_level * 100).toFixed(0)}%
+                  </span>
+                </div>
+                
+                <div className="w-full bg-indigo-100/50 rounded-full h-1.5 overflow-hidden">
+                  <div 
+                    className={`h-1.5 rounded-full ${
+                      review.mastery_level >= 0.8 ? 'bg-emerald-400' :
+                      review.mastery_level >= 0.6 ? 'bg-blue-400' :
+                      review.mastery_level >= 0.4 ? 'bg-amber-400' :
+                      'bg-rose-400'
+                    }`}
+                    style={{ width: `${review.mastery_level * 100}%` }}
+                  ></div>
+                </div>
+                
+                {review.days_overdue > 0 && (
+                  <p className="text-xs text-rose-500 font-medium mt-1">
+                    ⚠️ {review.days_overdue} days overdue
+                  </p>
                 )}
-
-                {!error && reviews.length === 0 && (
-                  <Card className="border-green-300 bg-green-50">
-                    <CardContent className="p-4 text-center">
-                      <div className="text-3xl mb-2">🎉</div>
-                      <p className="text-sm font-semibold text-green-800">太棒了！</p>
-                      <p className="text-xs text-green-700 mt-1">今天没有需要复习的词汇</p>
-                      <Button 
-                        size="sm"
-                        onClick={() => router.push('/word-learning-entrance')}
-                        className="mt-3 w-full bg-green-500 hover:bg-green-600"
-                      >
-                        开始学习新词汇
-                      </Button>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {reviews.map((review, index) => (
-                  <Card 
-                    key={`${review.word_id}-${index}`}
-                    className="hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => setSelectedReview(review)}
-                  >
-                    <CardContent className="p-3">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-base">{review.word}</h3>
-                          <p className="text-xs text-gray-600">
-                            已复习 {review.review_count} 次
-                          </p>
-                        </div>
-                        {getPriorityBadge(review.priority_score)}
-                      </div>
-                      
-                      <div className="space-y-1 mb-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-600">掌握度：</span>
-                          <span className={`font-semibold ${getMasteryColor(review.mastery_level)}`}>
-                            {(review.mastery_level * 100).toFixed(0)}%
-                          </span>
-                        </div>
-                        
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className={`h-1.5 rounded-full ${
-                              review.mastery_level >= 0.8 ? 'bg-green-500' :
-                              review.mastery_level >= 0.6 ? 'bg-blue-500' :
-                              review.mastery_level >= 0.4 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`}
-                            style={{ width: `${review.mastery_level * 100}%` }}
-                          ></div>
-                        </div>
-                        
-                        {review.days_overdue > 0 && (
-                          <p className="text-xs text-orange-600">
-                            ⚠️ 已逾期 {review.days_overdue} 天
-                          </p>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600 flex items-center">
-                          <BookOpen size={12} className="mr-1" />
-                          {getModuleLabel(review.recommended_module)}
-                        </span>
-                        <Button 
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startReview(review);
-                          }}
-                          className="bg-blue-500 hover:bg-blue-600 text-xs px-3 py-1 h-auto"
-                        >
-                          开始复习
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
               </div>
-
-              {/* Bottom Actions */}
-              <div className="p-3 pt-2 space-y-2 bg-orange-50">
-                {reviews.length > 0 && (
-                  <Button
-                    onClick={() => {
-                      if (reviews[0]) {
-                        startReview(reviews[0]);
-                      }
-                    }}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white"
-                  >
-                    开始第一个复习
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/')}
-                  className="w-full"
+              
+              <div className="flex items-center justify-between pt-2 border-t border-indigo-50/50">
+                <span className="text-xs text-gray-500 flex items-center font-medium">
+                  <BookOpen size={12} className="mr-1.5" />
+                  {getModuleLabel(review.recommended_module)}
+                </span>
+                <Button 
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startReview(review);
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-1.5 h-8 rounded-full shadow-md shadow-indigo-600/20"
                 >
-                  返回首页
+                  Start Review
                 </Button>
               </div>
             </div>
+          ))}
+        </div>
 
-            {/* Home Indicator */}
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-black rounded-full"></div>
-          </div>
+        {/* Bottom Actions */}
+        <div className="p-6 bg-white/30 backdrop-blur-md border-t border-white/40 space-y-3 pb-8">
+          {reviews.length > 0 && (
+            <Button
+              onClick={() => {
+                if (reviews[0]) {
+                  startReview(reviews[0]);
+                }
+              }}
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 h-12 text-base font-semibold"
+            >
+              Start First Review
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => router.push('/')}
+            className="w-full bg-white/50 border-white/60 text-gray-700 hover:bg-white/80 hover:text-indigo-600 h-12 rounded-xl font-semibold backdrop-blur-md"
+          >
+            Back to Home
+          </Button>
         </div>
       </div>
     </div>
