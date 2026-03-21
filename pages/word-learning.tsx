@@ -19,11 +19,7 @@ export default function Component() {
     updateLearningSession({ module: 'word' });
   }, [updateLearningSession]);
 
-  const playAudio = (id: string) => {
-    setAudioPlaying(id);
-    // In a real app, logic to play audio goes here.
-    setTimeout(() => setAudioPlaying(null), 1500);
-  };
+
 
   useEffect(() => {
     if (word) {
@@ -116,14 +112,12 @@ export default function Component() {
                           <span className="text-xs font-normal text-gray-500 ml-2">{col.translation}</span>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 rounded-full text-indigo-400 hover:text-indigo-600 hover:bg-white/50"
-                        onClick={() => playAudio(`collocation-${index}`)}
-                      >
-                        <Volume2 size={14} />
-                      </Button>
+                      <AudioPlayer 
+                        text={col.collocation.replace(/\uff08[^\uff09]*\uff09/g, '')} 
+                        audioUrl={col.audio}
+                        language="zh-CN"
+                        buttonSize="sm"
+                      />
                     </div>
                   )})}
                 </div>
@@ -137,14 +131,14 @@ export default function Component() {
                         <p className="text-[13px] font-semibold text-gray-800 leading-relaxed pr-8">
                           {mainExample.sentence}
                         </p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 rounded-full absolute top-0 right-0 text-indigo-400 hover:text-indigo-600 hover:bg-white/50"
-                          onClick={() => playAudio(`sentence-0`)}
-                        >
-                          <Volume2 size={14} />
-                        </Button>
+                        <div className="absolute top-0 right-0">
+                          <AudioPlayer 
+                            text={mainExample.sentence} 
+                            audioUrl={mainExample.audio}
+                            language="zh-CN"
+                            buttonSize="sm"
+                          />
+                        </div>
                       </div>
                       {mainExample.pinyin && (
                         <p className="text-[11px] text-indigo-600/80 mt-1.5 font-medium tracking-wide">

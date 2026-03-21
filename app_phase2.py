@@ -43,6 +43,13 @@ except ImportError:
     check_data_ownership = lambda: lambda f: f
     get_current_user_from_request = lambda: (None, False)
 
+# 导入易混淆词API模块
+try:
+    from confusable_api import register_confusable_apis
+except ImportError:
+    print("⚠️  易混淆词API模块未找到")
+    register_confusable_apis = None
+
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # 支持credentials以便使用cookies
 
@@ -1498,12 +1505,29 @@ def initialize_database():
                     simple_test_data.generate_simple_test_data()
                 except Exception as e:
                     print(f"⚠️  测试数据生成失败: {str(e)}")
+            
+            # 注册易混淆词API
+            if register_confusable_apis:
+                try:
+                    register_confusable_apis(app, db, require_authentication, check_data_ownership)
+                except Exception as e:
+                    print(f"⚠️  易混淆词API注册失败: {str(e)}")
         
         # 初始化推荐引擎
         init_recommendation_engine()
         
     except Exception as e:
         print(f"❌ 数据库初始化失败: {str(e)}")
+
+# 在module级别注册易混淆词API（gunicorn不走__main__）
+if register_confusable_apis:
+    try:
+        register_confusable_apis(app, db, require_authentication, check_data_ownership)
+    except Exception as e:
+        print(f"⚠️  易混淆词API模块级注册失败: {str(e)}")
+
+# gunicorn启动时自动初始化
+initialize_database()
 
 if __name__ == '__main__':
     print("🚀 启动第二阶段自适应学习API服务...")

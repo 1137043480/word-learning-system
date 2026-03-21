@@ -12,11 +12,7 @@ export default function Component() {
   const { previous, next, goTo } = useLearningNavigation('sentence');
   const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
 
-  const playAudio = (id: string) => {
-    setAudioPlaying(id);
-    // In a real app, logic to play audio goes here.
-    setTimeout(() => setAudioPlaying(null), 1500);
-  };
+
 
   useEffect(() => {
     updateLearningSession({ module: 'sentence' });
@@ -81,14 +77,14 @@ export default function Component() {
                         <p className="text-[13px] font-semibold text-gray-800 leading-relaxed pr-8">
                           {ex.sentence}
                         </p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 rounded-full absolute top-0 right-0 text-indigo-400 hover:text-indigo-600 hover:bg-white/50"
-                          onClick={() => playAudio(`sentence-${index}`)}
-                        >
-                          <Volume2 size={14} />
-                        </Button>
+                        <div className="absolute top-0 right-0">
+                          <AudioPlayer 
+                            text={ex.sentence} 
+                            audioUrl={ex.audio}
+                            language="zh-CN"
+                            buttonSize="sm"
+                          />
+                        </div>
                       </div>
                       {ex.pinyin && (
                         <p className="text-[11px] text-indigo-600/80 mt-1.5 font-medium tracking-wide">

@@ -13,12 +13,7 @@ export default function Component() {
     initialWordId: learningSession.wordId ?? undefined,
   });
   const { previous, next, goTo } = useLearningNavigation("character");
-  const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
 
-  const playAudio = (id: string) => {
-    setAudioPlaying(id);
-    setTimeout(() => setAudioPlaying(null), 1000);
-  };
 
   useEffect(() => {
     updateLearningSession({ module: "character" });
@@ -69,14 +64,11 @@ export default function Component() {
                 <span className="text-sm font-medium text-indigo-700 tracking-widest">
                   {word.pinyin}
                 </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => playAudio("main")}
-                  className={`h-6 w-6 p-0 rounded-full ${audioPlaying === "main" ? "bg-indigo-200 text-indigo-800" : "text-indigo-400 hover:text-indigo-600 hover:bg-white"}`}
-                >
-                  <Volume2 size={12} />
-                </Button>
+                <AudioPlayer 
+                  text={word.hanzi} 
+                  language="zh-CN"
+                  buttonSize="sm"
+                />
               </div>
             </div>
 
@@ -90,9 +82,8 @@ export default function Component() {
               {characters.map((item, index) => (
                 <div
                   key={`${item.character}-${index}`}
-                  className="glass-card flex justify-between items-center p-3 rounded-2xl border border-white/40"
+                  className="flex-1 flex items-center p-3 rounded-2xl border border-white/40 glass-card"
                 >
-                  <div className="flex-1 pr-4 border-r border-indigo-100/50 flex items-center justify-between">
                     <span className="font-extrabold text-lg text-gray-800 shrink-0 w-8">
                       {item.character}
                     </span>
@@ -102,19 +93,11 @@ export default function Component() {
                     <p className="text-sm text-gray-700 font-medium px-2 flex-1 leading-relaxed break-words">
                       {item.definition}
                     </p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => playAudio(`character-${index}`)}
-                    className={`ml-3 shrink-0 h-8 w-8 rounded-full shadow-sm border ${
-                      audioPlaying === `character-${index}`
-                        ? "bg-indigo-100 border-indigo-200 text-indigo-600"
-                        : "bg-white/50 border-white/60 text-gray-400 hover:text-indigo-600 hover:bg-white"
-                    }`}
-                  >
-                    <Volume2 size={14} />
-                  </Button>
+                    <AudioPlayer 
+                      text={item.character} 
+                      language="zh-CN"
+                      buttonSize="sm"
+                    />
                 </div>
               ))}
 
@@ -157,14 +140,11 @@ export default function Component() {
                         </div>
                         <p className="text-sm font-normal text-gray-600 mt-1">{col.translation}</p>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 rounded-full text-indigo-400 hover:text-indigo-600 hover:bg-white/50"
-                        onClick={() => playAudio(`collocation-${index}`)}
-                      >
-                        <Volume2 size={14} />
-                      </Button>
+                      <AudioPlayer 
+                        text={col.collocation.replace(/\uff08[^\uff09]*\uff09/g, '')} 
+                        language="zh-CN"
+                        buttonSize="sm"
+                      />
                     </div>
                   )})}
                 </div>
@@ -179,14 +159,13 @@ export default function Component() {
                         <p className="text-[14px] font-semibold text-gray-800 leading-relaxed pr-8">
                           {ex.sentence}
                         </p>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 rounded-full absolute top-0 right-0 text-indigo-400 hover:text-indigo-600 hover:bg-white/50"
-                          onClick={() => playAudio(`sentence-${index}`)}
-                        >
-                          <Volume2 size={14} />
-                        </Button>
+                        <div className="absolute top-0 right-0">
+                          <AudioPlayer 
+                            text={ex.sentence} 
+                            language="zh-CN"
+                            buttonSize="sm"
+                          />
+                        </div>
                       </div>
                       {ex.pinyin && (
                         <p className="text-[12px] text-indigo-600/80 mt-2 font-medium tracking-wide leading-relaxed">
