@@ -262,25 +262,39 @@ export class TimeTracker {
   private async sendBatchEvents() {
     if (this.events.length === 0) return;
 
-    try {
-      // 注意：当前简化版本不包含批量事件API，所以先记录到控制台
-      console.log('📦 Batch events to send:', this.events.length);
-      
-      // 在完整版本中，这里会发送批量事件到服务器
-      // const response = await fetch(`${this.apiBaseUrl}/api/learning/events/batch`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     sessionId: this.sessionId,
-      //     events: this.events
-      //   })
-      // });
+    const eventsToSend = [...this.events];
+    this.events = [];
 
-      // 清空已发送的事件
-      this.events = [];
+    try {
+      console.log('📦 Sending batch events:', eventsToSend.length);
       
+      const response = await fetch(`${this.apiBaseUrl}/api/learning/events/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: this.sessionId,
+          events: eventsToSend.map(e => ({
+            type: e.type,
+            target: e.target,
+            data: e.data,
+            pageUrl: e.pageUrl,
+            timestamp: e.timestamp.toISOString()
+          }))
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log(`✅ Batch events sent: ${result.count} recorded`);
+      } else {
+        console.error('❌ Failed to send batch events:', result.error);
+        // 发送失败则重新加回队列
+        this.events = [...eventsToSend, ...this.events];
+      }
     } catch (error) {
       console.error('❌ Failed to send batch events:', error);
+      // 网络错误也重新加回队列
+      this.events = [...eventsToSend, ...this.events];
     }
   }
 

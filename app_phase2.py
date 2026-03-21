@@ -191,6 +191,17 @@ class AdaptiveRecommendation(db.Model):
     effectiveness_score = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class LearningEvent(db.Model):
+    __tablename__ = 'learning_event'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), nullable=False, index=True)
+    event_type = db.Column(db.String(50), nullable=False)
+    target = db.Column(db.String(100))
+    event_data = db.Column(db.Text)  # JSON string
+    page_url = db.Column(db.String(200))
+    timestamp = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # 全局推荐引擎实例
 recommendation_engine = None
 spaced_repetition = None
@@ -235,6 +246,7 @@ def home():
             "POST /api/learning/session/start - 开始学习会话",
             "POST /api/learning/session/end - 结束学习会话",
             "POST /api/learning/exercise/record - 记录练习结果",
+            "POST /api/learning/events/batch - 批量记录学习事件",
             "GET  /api/adaptive/recommendation/<user_id> - 获取个性化推荐",
             "POST /api/adaptive/feedback - 记录推荐反馈",
             "GET  /api/review/user/<user_id>/due - 获取到期复习内容",
@@ -434,6 +446,59 @@ def record_exercise_result(current_user_id=None, **kwargs):
         return jsonify({
             'success': True,
             'message': 'Exercise recorded successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/learning/events/batch', methods=['POST'])
+def record_batch_events():
+    """批量记录学习事件（页面停留、点击、音频播放等）"""
+    try:
+        data = request.get_json()
+        session_id = data.get('sessionId')
+        events = data.get('events', [])
+        
+        if not session_id:
+            return jsonify({'success': False, 'error': 'sessionId is required'}), 400
+        
+        if not events:
+            return jsonify({'success': True, 'message': 'No events to record', 'count': 0})
+        
+        recorded_count = 0
+        for event in events:
+            try:
+                timestamp_str = event.get('timestamp', '')
+                if isinstance(timestamp_str, str) and timestamp_str:
+                    try:
+                        event_time = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                    except (ValueError, TypeError):
+                        event_time = datetime.utcnow()
+                else:
+                    event_time = datetime.utcnow()
+                
+                learning_event = LearningEvent(
+                    session_id=session_id,
+                    event_type=event.get('type', 'unknown'),
+                    target=event.get('target'),
+                    event_data=json.dumps(event.get('data')) if event.get('data') else None,
+                    page_url=event.get('pageUrl'),
+                    timestamp=event_time
+                )
+                db.session.add(learning_event)
+                recorded_count += 1
+            except Exception as e:
+                print(f"⚠️  跳过无效事件: {str(e)}")
+                continue
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Recorded {recorded_count} events',
+            'count': recorded_count
         })
         
     except Exception as e:

@@ -4,6 +4,8 @@ import { Battery, Signal, Wifi, Volume2 } from "lucide-react";
 import { useWordData } from "@/hooks/useWordData";
 import { useLearningSession } from "@/src/context/LearningSessionContext";
 import { useLearningNavigation } from "@/src/hooks/useLearningNavigation";
+import { useLearningContext } from "@/src/context/LearningContext";
+import { useComprehensiveTracking } from "@/hooks/useTimeTracking";
 import AudioPlayer from "@/components/AudioPlayer";
 
 export default function Component() {
@@ -13,7 +15,22 @@ export default function Component() {
     initialWordId: learningSession.wordId ?? undefined,
   });
   const { previous, next, goTo } = useLearningNavigation("character");
+  const { userId } = useLearningContext();
 
+  const tracking = useComprehensiveTracking({
+    userId,
+    wordId: learningSession.wordId ?? 1,
+    moduleType: 'character',
+    sessionType: 'learning'
+  });
+  const { pageTracking, interactionTracking, trackEvent } = tracking;
+
+  useEffect(() => {
+    pageTracking.trackPageEnter('character-learning');
+    return () => {
+      pageTracking.trackPageLeave('character-learning');
+    };
+  }, [pageTracking]);
 
   useEffect(() => {
     updateLearningSession({ module: "character" });
@@ -28,6 +45,8 @@ export default function Component() {
   const handleNavigate = (direction: "previous" | "next") => {
     const target = direction === "previous" ? previous : next;
     if (!target) return;
+    interactionTracking.trackButtonClick(`navigate-${direction}`, target.label);
+    trackEvent('module_navigate', 'character', { direction, to: target.key });
     goTo(target.key);
   };
 

@@ -5,6 +5,7 @@ import { useWordData } from '@/hooks/useWordData';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
 import { useLearningContext } from '@/src/context/LearningContext';
+import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
 import ReviewReminder from '@/components/ReviewReminder';
 import AudioPlayer from '@/components/AudioPlayer';
 
@@ -14,6 +15,21 @@ export default function Component() {
   const { word, loading, error } = useWordData({ initialWordId: learningSession.wordId ?? undefined });
   const { previous, next, goTo } = useLearningNavigation('word');
   const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
+
+  const tracking = useComprehensiveTracking({
+    userId,
+    wordId: learningSession.wordId ?? 1,
+    moduleType: 'word',
+    sessionType: 'learning'
+  });
+  const { pageTracking, interactionTracking, trackEvent } = tracking;
+
+  useEffect(() => {
+    pageTracking.trackPageEnter('word-learning');
+    return () => {
+      pageTracking.trackPageLeave('word-learning');
+    };
+  }, [pageTracking]);
 
   useEffect(() => {
     updateLearningSession({ module: 'word' });
@@ -30,6 +46,8 @@ export default function Component() {
   const handleNavigate = (direction: 'previous' | 'next') => {
     const target = direction === 'previous' ? previous : next;
     if (!target) return;
+    interactionTracking.trackButtonClick(`navigate-${direction}`, target.label);
+    trackEvent('module_navigate', 'word', { direction, to: target.key });
     goTo(target.key);
   };
 

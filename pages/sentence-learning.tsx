@@ -4,6 +4,8 @@ import { Battery, Signal, Wifi, Volume2 } from 'lucide-react';
 import { useWordData } from '@/hooks/useWordData';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 import { useLearningNavigation, resolveModuleLabel } from '@/src/hooks/useLearningNavigation';
+import { useLearningContext } from '@/src/context/LearningContext';
+import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
 import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Component() {
@@ -11,8 +13,22 @@ export default function Component() {
   const { word, loading, error } = useWordData({ initialWordId: learningSession.wordId ?? undefined });
   const { previous, next, goTo } = useLearningNavigation('sentence');
   const [audioPlaying, setAudioPlaying] = useState<string | null>(null);
+  const { userId } = useLearningContext();
 
+  const tracking = useComprehensiveTracking({
+    userId,
+    wordId: learningSession.wordId ?? 1,
+    moduleType: 'sentence',
+    sessionType: 'learning'
+  });
+  const { pageTracking, interactionTracking, trackEvent } = tracking;
 
+  useEffect(() => {
+    pageTracking.trackPageEnter('sentence-learning');
+    return () => {
+      pageTracking.trackPageLeave('sentence-learning');
+    };
+  }, [pageTracking]);
 
   useEffect(() => {
     updateLearningSession({ module: 'sentence' });
@@ -27,6 +43,8 @@ export default function Component() {
   const handleNavigate = (direction: 'previous' | 'next') => {
     const target = direction === 'previous' ? previous : next;
     if (!target) return;
+    interactionTracking.trackButtonClick(`navigate-${direction}`, target.label);
+    trackEvent('module_navigate', 'sentence', { direction, to: target.key });
     goTo(target.key);
   };
 
