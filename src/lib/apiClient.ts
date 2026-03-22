@@ -138,3 +138,33 @@ export const fetchRecentSessions = async (userId: string, params?: { limit?: num
   }
   return result.data;
 };
+
+// 学习状态持久化（跨设备恢复）
+export interface LearningStateData {
+  wordId?: number | null;
+  word?: string | null;
+  module?: string | null;
+  vksLevel?: string | null;
+  lastUpdated?: string | null;
+}
+
+export const fetchLearningState = async (userId: string): Promise<LearningStateData> => {
+  const result = await fetchJson<{ success: boolean; data: LearningStateData; error?: string }>(
+    `/api/users/${userId}/learning-state`
+  );
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch learning state');
+  }
+  return result.data;
+};
+
+export const saveLearningState = async (userId: string, state: Partial<LearningStateData>): Promise<void> => {
+  await fetchJson<{ success: boolean; error?: string }>(
+    `/api/users/${userId}/learning-state`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    }
+  );
+};

@@ -1,5 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useLearningContext } from '@/src/context/LearningContext';
+import { fetchLearningState, saveLearningState } from '@/src/lib/apiClient';
 
 export interface LearningSessionState {
   wordId?: number | null;
@@ -65,13 +66,73 @@ const persistSessionToStorage = (userId: string, session: LearningSessionState) 
   }
 };
 
+/** Debounce timer ref type */
+type TimerRef = ReturnType<typeof setTimeout> | null;
+
 export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { userId } = useLearningContext();
   const [session, setSession] = useState<LearningSessionState>(() => loadSessionFromStorage(userId));
+  const saveTimerRef = useRef<TimerRef>(null);
+  const userIdRef = useRef(userId);
 
+  // Keep userIdRef in sync
   useEffect(() => {
-    setSession(loadSessionFromStorage(userId));
+    userIdRef.current = userId;
   }, [userId]);
+
+  // Load from localStorage on user switch, then async-fetch from backend
+  useEffect(() => {
+    const localSession = loadSessionFromStorage(userId);
+    setSession(localSession);
+
+    // Async: fetch from backend and use if newer
+    fetchLearningState(userId)
+      .then(serverState => {
+        if (!serverState || (!serverState.wordId && !serverState.module)) {
+          return; // Server has no data, keep local
+        }
+
+        const serverTime = serverState.lastUpdated ? new Date(serverState.lastUpdated).getTime() : 0;
+        const localTime = localSession.lastUpdated ? new Date(localSession.lastUpdated).getTime() : 0;
+
+        if (serverTime > localTime) {
+          // Server data is newer, use it
+          const merged: LearningSessionState = {
+            wordId: serverState.wordId ?? localSession.wordId,
+            word: serverState.word ?? localSession.word,
+            module: serverState.module ?? localSession.module,
+            vksLevel: serverState.vksLevel ?? localSession.vksLevel,
+            lastUpdated: serverState.lastUpdated ?? localSession.lastUpdated
+          };
+          setSession(merged);
+          persistSessionToStorage(userId, merged);
+          console.log('📥 学习进度已从服务器恢复');
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to fetch learning state from server:', err);
+      });
+  }, [userId]);
+
+  // Debounced save to backend
+  const syncToBackend = useCallback((state: LearningSessionState) => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(() => {
+      const uid = userIdRef.current;
+      saveLearningState(uid, {
+        wordId: state.wordId,
+        word: state.word,
+        module: state.module,
+        vksLevel: state.vksLevel
+      }).then(() => {
+        console.log('📤 学习进度已同步到服务器');
+      }).catch(err => {
+        console.warn('Failed to save learning state to server:', err);
+      });
+    }, 1000); // Debounce 1 second
+  }, []);
 
   const updateSession = useCallback((partial: Partial<LearningSessionState>) => {
     setSession(prev => {
@@ -81,15 +142,34 @@ export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({
         ...partial,
         lastUpdated: timestamp
       };
-      persistSessionToStorage(userId, next);
+      persistSessionToStorage(userIdRef.current, next);
+      syncToBackend(next);
       return next;
     });
-  }, [userId]);
+  }, [syncToBackend]);
 
   const clearSession = useCallback(() => {
     setSession(DEFAULT_SESSION);
     persistSessionToStorage(userId, DEFAULT_SESSION);
+    // Also clear on server
+    saveLearningState(userId, {
+      wordId: null,
+      word: null,
+      module: null,
+      vksLevel: null
+    }).catch(err => {
+      console.warn('Failed to clear learning state on server:', err);
+    });
   }, [userId]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, []);
 
   const value = useMemo<LearningSessionContextValue>(() => ({
     session,

@@ -100,6 +100,11 @@ class UserProfile(db.Model):
     username = db.Column(db.String(100))
     language_level = db.Column(db.String(20))
     native_language = db.Column(db.String(50), default='English')
+    # 持久化学习状态（跨设备恢复）
+    current_word_id = db.Column(db.Integer)
+    current_word = db.Column(db.String(50))
+    current_module = db.Column(db.String(30))
+    current_vks_level = db.Column(db.String(5))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -813,6 +818,70 @@ def get_recent_sessions(user_id, current_user_id=None, **kwargs):
 
         return jsonify({'success': True, 'data': data})
     except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+# ================================================
+# 学习状态持久化API（跨设备恢复）
+# ================================================
+
+@app.route('/api/users/<user_id>/learning-state', methods=['GET'])
+def get_learning_state(user_id):
+    """获取用户当前学习状态（用于跨设备恢复）"""
+    try:
+        profile = UserProfile.query.filter_by(user_id=user_id).first()
+        if not profile:
+            return jsonify({
+                'success': True,
+                'data': {'wordId': None, 'word': None, 'module': None, 'vksLevel': None, 'lastUpdated': None}
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'wordId': profile.current_word_id,
+                'word': profile.current_word,
+                'module': profile.current_module,
+                'vksLevel': profile.current_vks_level,
+                'lastUpdated': profile.updated_at.isoformat() if profile.updated_at else None
+            }
+        })
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+@app.route('/api/users/<user_id>/learning-state', methods=['PUT'])
+def save_learning_state(user_id):
+    """保存用户当前学习状态（跨设备持久化）"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        profile = UserProfile.query.filter_by(user_id=user_id).first()
+        if not profile:
+            # 自动创建用户 profile
+            profile = UserProfile(user_id=user_id)
+            db.session.add(profile)
+        
+        if 'wordId' in data:
+            profile.current_word_id = data['wordId']
+        if 'word' in data:
+            profile.current_word = data['word']
+        if 'module' in data:
+            profile.current_module = data['module']
+        if 'vksLevel' in data:
+            profile.current_vks_level = data['vksLevel']
+        
+        profile.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Learning state saved successfully'
+        })
+    except Exception as exc:
+        db.session.rollback()
         return jsonify({'success': False, 'error': str(exc)}), 500
 
 
