@@ -577,7 +577,7 @@ const Exercise = () => {
                        {/* 将原本外部底部的CONTINUE按钮嵌入到面板深处 */}
                        <Button 
                          onClick={handleContinue}
-                         className={`w-full h-[48px] rounded-[14px] border-none font-extrabold tracking-widest text-[14px] transition-all duration-300 text-white shadow-xl mb-4 ${
+                         className={`w-full h-[48px] rounded-[14px] border-none font-extrabold tracking-widest text-[14px] transition-all duration-300 text-white shadow-xl mb-[calc(env(safe-area-inset-bottom)+1.5rem)] ${
                             isCorrect ? 'bg-[#5bb018] hover:bg-[#4d9711] shadow-[#5bb018]/30' : 'bg-[#ef4444] hover:bg-[#dc2626] shadow-[#ef4444]/30'
                          }`}
                        >
@@ -595,7 +595,7 @@ const Exercise = () => {
 
               {/* 仅在未反馈时才在底部显示唯一的SUBMIT类提交按钮 */}
               {!showFeedback && (
-                <div className="pt-2 pb-2 w-full z-30 px-5">
+                <div className="pt-2 w-full z-30 px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
                   <Button 
                     onClick={handleSubmit}
                     disabled={currentQuestion.type === 'fill_word' ? !fillInAnswer.trim() : !selectedOption}

@@ -123,7 +123,7 @@ export default function Component() {
         </div>
 
         {/* 底部按钮区域保持为单大绿色 CONTINUE 按钮以符合原型图 */}
-        <div className="pt-4 pb-2 w-full z-30 px-5">
+        <div className="pt-4 w-full z-30 px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
           <Button
               className="w-full h-12 rounded-xl border-none shadow-[0_4px_14px_0_rgba(91,176,24,0.39)] bg-[#5bb018] hover:bg-[#4d9711] text-white font-bold tracking-widest text-sm"
               onClick={() => handleNavigate("next")}

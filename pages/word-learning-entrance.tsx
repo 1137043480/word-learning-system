@@ -332,7 +332,7 @@ export default function Component() {
                 <Button
                   onClick={handleContinue}
                   disabled={!selectedOption || isSubmitting}
-                  className="w-full relative group overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 disabled:from-gray-300 disabled:to-gray-300 hover:shadow-lg disabled:shadow-none text-white py-6 text-sm font-bold rounded-2xl mt-4 border-none transition-all duration-300"
+                  className="w-full relative group overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 disabled:from-gray-300 disabled:to-gray-300 hover:shadow-lg disabled:shadow-none text-white py-6 text-sm font-bold rounded-2xl mt-4 mb-[calc(env(safe-area-inset-bottom)+1.5rem)] border-none transition-all duration-300"
                 >
                   <span className="relative z-10 tracking-wider text-glow">{isSubmitting ? '处理中...' : 'CONTINUE'}</span>
                   {!(!selectedOption || isSubmitting) && (
