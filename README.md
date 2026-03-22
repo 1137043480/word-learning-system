@@ -3,10 +3,12 @@
 [![中文文档](https://img.shields.io/badge/文档-中文版-blue)](./README_zh.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-learnchinese.kzwbelieve.top-brightgreen)](http://learnchinese.kzwbelieve.top)
+[![GitHub stars](https://img.shields.io/github/stars/1137043480/word-learning-system?style=social)](https://github.com/1137043480/word-learning-system)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-5A0FC8?logo=pwa)](http://learnchinese.kzwbelieve.top)
 
-**Version**: 2.1.0 · **Status**: Phase 2 Complete · **Last Updated**: March 2026
+**Version**: 2.2.0 · **Status**: Production · **Last Updated**: March 2026
 
-> 🌐 **[Try it now → learnchinese.kzwbelieve.top](http://learnchinese.kzwbelieve.top)** — No installation required!
+> 🌐 **[Try it now → learnchinese.kzwbelieve.top](http://learnchinese.kzwbelieve.top)** — No installation required! Works on mobile & desktop.
 
 An intelligent, adaptive vocabulary learning system for intermediate-level Chinese as a Foreign Language (CFL) learners. Built as part of a master's thesis at **Peking University** — *"Research and Design of an Adaptive Intermediate Chinese Vocabulary Learning System"* — this project implements a full-stack learning platform with AI-driven personalized learning paths, spaced repetition, and comprehensive learning analytics.
 
@@ -22,6 +24,8 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 - 🔊 **TTS Audio Pronunciation** — Built-in text-to-speech for characters, words, collocations, and example sentences
 - 🔗 **Multi-module Learning Chain** — Character → Vocabulary → Collocation → Sentence progressive learning flow
 - 📖 **SLA-informed Curriculum Design** — Learning materials grounded in Second Language Acquisition theory: word frequency-based difficulty grading via BCC corpus (billions of tokens), NLP-powered collocation extraction using dependency parsing and mutual information, automated sentence complexity scoring, and interlanguage corpus-based confused word identification
+- 📱 **PWA Support** — Install as a native-like app on iOS, Android, and desktop; works offline with Service Worker caching
+- ☁️ **Cross-device Progress Sync** — Learning state persisted to backend; switch devices without losing progress
 
 ---
 
@@ -76,9 +80,11 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 |-------|-----------|
 | **Frontend** | Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui |
 | **Backend** | Flask, SQLAlchemy, SQLite |
+| **PWA** | Service Worker, Web App Manifest, offline caching |
 | **Algorithm** | Modified SuperMemo-2, Multi-factor recommendation engine |
 | **ML Models** | AdaBoost (Multinomial NB), Gaussian NB, XGBoost with voting ensemble |
 | **NLP Pipeline** | BCC corpus frequency analysis, dependency parsing, mutual information scoring |
+| **Deployment** | Nginx, PM2, VPS with HTTPS |
 
 ---
 
@@ -212,6 +218,15 @@ GET /api/review/user/{user_id}/due
 
 # User list
 GET /api/users
+
+# Learning state persistence (cross-device sync)
+GET  /api/users/{user_id}/learning-state
+PUT  /api/users/{user_id}/learning-state
+
+# Learning session management
+POST /api/learning/session/start
+POST /api/learning/session/end
+POST /api/learning/events/batch
 ```
 
 ---
