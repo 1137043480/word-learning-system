@@ -31,6 +31,9 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 
 ## 📸 Screenshots
 
+<details>
+<summary><b>Click to view all 9 screenshots 👇</b></summary>
+
 <table>
   <tr>
     <td align="center"><b>Home Page</b></td>
@@ -73,6 +76,8 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
     <td></td>
   </tr>
 </table>
+
+</details>
 
 ## 🛠️ Tech Stack
 
