@@ -34,43 +34,43 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 <table>
   <tr>
     <td align="center"><b>Home Page</b></td>
+    <td align="center"><b>VKS Assessment</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/01-homepage.png?v=3" width="400" alt="Home Page - Mobile-first welcome interface with navigation to all learning modules"></td>
+    <td><img src="docs/screenshots/02-vks-entrance.png?v=3" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Character Learning</b></td>
+    <td align="center"><b>Word Learning</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/03-character-learning.png?v=3" width="400" alt="Character Learning - Chinese character breakdown with pinyin, stroke order, and definitions"></td>
+    <td><img src="docs/screenshots/04-word-learning.png?v=3" width="400" alt="Word Learning - Deep dive into word meanings, collocations, and usage"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Collocation Learning</b></td>
+    <td align="center"><b>Sentence Learning</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/04b-collocation-learning.png?v=3" width="400" alt="Collocation Learning - Mastering native-like phrasing combinations"></td>
+    <td><img src="docs/screenshots/04c-sentence-learning.png?v=3" width="400" alt="Sentence Learning - Contextual reading and listening practice"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Vocabulary Exercise</b></td>
     <td align="center"><b>Learning Dashboard</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/home-page.png?v=2" width="400" alt="Home Page - Mobile-first welcome interface with navigation to all learning modules"></td>
-    <td><img src="docs/screenshots/learning-dashboard.png?v=2" width="400" alt="Learning Dashboard - AI-powered smart recommendations with confidence scoring"></td>
+    <td><img src="docs/screenshots/07-exercise.png?v=3" width="400" alt="Vocabulary Exercise - Interactive quizzes with immediate feedback"></td>
+    <td><img src="docs/screenshots/05-dashboard.png?v=3" width="400" alt="Learning Dashboard - AI-powered smart recommendations with confidence scoring"></td>
   </tr>
   <tr>
-    <td align="center"><b>VKS Assessment</b></td>
-    <td align="center"><b>Character Learning</b></td>
+    <td align="center"><b>Today's Review</b></td>
+    <td></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/vks-assessment.png?v=2" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
-    <td><img src="docs/screenshots/character-learning.png?v=2" width="400" alt="Character Learning - Chinese character breakdown with pinyin and definitions"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Vocabulary Learning</b></td>
-    <td align="center"><b>Collocation Learning</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/word-learning.png?v=2" width="400" alt="Vocabulary Learning - Deep dive into word meanings and usage"></td>
-    <td><img src="docs/screenshots/collocation-learning.png?v=2" width="400" alt="Collocation Learning - Mastering native-like phrasing combinations"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Sentence Learning</b></td>
-    <td align="center"><b>Vocabulary Exercise</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/sentence-learning.png?v=2" width="400" alt="Sentence Learning - Contextual reading and listening practice"></td>
-    <td><img src="docs/screenshots/vocabulary-exercise.png?v=2" width="400" alt="Vocabulary Exercise - Interactive quizzes with immediate feedback"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Spaced Repetition Review</b></td>
-    <td align="center"><b>Learning Statistics</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/today-review.png?v=2" width="400" alt="Spaced Repetition Review - Daily personalized review tasks"></td>
-    <td><img src="docs/screenshots/learning-stats.png?v=2" width="400" alt="Learning Statistics - Tracking progress and algorithm states"></td>
+    <td><img src="docs/screenshots/06-today-review.png?v=3" width="400" alt="Spaced Repetition Review - Daily personalized review tasks"></td>
+    <td></td>
   </tr>
 </table>
 
