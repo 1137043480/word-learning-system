@@ -1,6 +1,18 @@
 import type { ExerciseSetResponse, RecentSessionSummary, UserProfileSummary, WordResponse, WordSummary } from './types';
 
-const DEFAULT_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? 'http://localhost:5004').replace(/\/$/, '');
+const getDefaultBase = () => {
+  const envBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL;
+  if (envBase !== undefined && envBase !== '') {
+    return envBase.replace(/\/$/, '');
+  }
+  // In browser: use relative paths (same domain, proxied by Nginx)
+  // On server (SSR): use direct backend URL
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+  return 'http://localhost:5004';
+};
+const DEFAULT_BASE = getDefaultBase();
 const STORAGE_KEY = 'learningSystem.apiBaseUrl';
 
 let runtimeOverride: string | null = null;
