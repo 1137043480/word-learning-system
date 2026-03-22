@@ -1,5 +1,14 @@
 /* Mobile Responsive Enhancements */
 
+/* ===== Mobile Font Size Boost ===== */
+/* Phone screens have high DPI, making text appear smaller than on desktop */
+/* Bumping root font-size makes all rem-based Tailwind utilities scale up */
+@media (max-width: 430px) {
+  html {
+    font-size: 18px; /* default is 16px, this gives ~12% boost on phones */
+  }
+}
+
 /* ===== Viewport & Touch Optimization ===== */
 @media (max-width: 768px) {
   /* Navigation */
