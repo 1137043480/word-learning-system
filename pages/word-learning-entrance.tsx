@@ -240,69 +240,57 @@ export default function Component() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] p-2 shadow-2xl relative">
-        <div className="absolute inset-0 m-2 rounded-[32px] overflow-hidden modern-gradient-bg">
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl z-50"></div>
-
-          <div className="relative z-40 flex justify-between items-center px-4 pt-1.5 text-gray-800 text-xs h-6">
-            <span className="font-medium tracking-wide text-[10px]">6:00</span>
-            <div className="flex items-center space-x-1">
-              <Signal size={12} strokeWidth={2.5} />
-              <Wifi size={12} strokeWidth={2.5} />
-              <Battery size={14} strokeWidth={2.5} />
-            </div>
-          </div>
-          <div className="h-full pt-10 pb-4 flex flex-col relative z-20">
-            <div className="px-5 mb-4">
-                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight">Word Learning</h1>
-                <p className="text-[10px] text-gray-500 mt-0.5 font-medium">
-                  {currentUser?.username ? `${currentUser.username} (${userId})` : userId}
-                </p>
-                <div className="text-[10px] text-gray-500 mt-2 space-y-1 bg-white/40 p-2.5 rounded-xl border border-white/60">
-                  <div className="flex justify-between items-center">
-                    <span>词汇量: {currentUser?.wordsStudied ?? 0}</span>
-                    {learningSession.word && (
-                      <span className="text-indigo-600 font-semibold">{activeModuleLabel || '练习'} · {learningSession.word}</span>
-                    )}
-                  </div>
-                  {recommendationMessage && (
-                    <p className="text-emerald-600 font-semibold mt-1">
-                      💡 {recommendationMessage}
-                    </p>
+    <div className="flex items-center justify-center min-h-[100dvh] bg-gray-50">
+      <div className="w-full max-w-[430px] h-[100dvh] overflow-hidden modern-gradient-bg relative">
+        <div className="h-full pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 flex flex-col relative z-20">
+          <div className="px-5 mb-4">
+              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight">Word Learning</h1>
+              <p className="text-sm text-gray-500 mt-1 font-medium">
+                {currentUser?.username ? `${currentUser.username} (${userId})` : userId}
+              </p>
+              <div className="text-sm text-gray-500 mt-3 space-y-1.5 bg-white/40 p-3 rounded-xl border border-white/60">
+                <div className="flex justify-between items-center">
+                  <span>词汇量: {currentUser?.wordsStudied ?? 0}</span>
+                  {learningSession.word && (
+                    <span className="text-indigo-600 font-semibold">{activeModuleLabel || '练习'} · {learningSession.word}</span>
                   )}
                 </div>
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    size="sm"
-                    onClick={() => router.push('/learning-dashboard')}
-                    className="flex-1 bg-white/60 text-indigo-700 hover:bg-white/80 text-[10px] h-8 rounded-lg shadow-sm border border-white/50"
-                  >
-                    Dashboard
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => router.push('/today-review')}
-                    className="flex-1 bg-white/60 text-rose-600 hover:bg-white/80 text-[10px] h-8 rounded-lg shadow-sm border border-white/50"
-                  >
-                    今日复习
-                  </Button>
-                </div>
+                {recommendationMessage && (
+                  <p className="text-emerald-600 font-semibold mt-1.5">
+                    💡 {recommendationMessage}
+                  </p>
+                )}
               </div>
-              
-              <div className="flex-1 px-5 pb-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
-                <div className="space-y-4">
-                  <div className="glass-panel p-4 rounded-2xl">
-                    <p className="text-[14px] font-bold text-gray-800 mb-1 leading-snug">How about you know {DEFAULT_WORD_NAME}?</p>
-                    <p className="text-[12px] text-gray-500 font-medium">Please choose one choice below and continue to next page.</p>
-                  </div>
+              <div className="mt-4 flex gap-3">
+                <Button
+                  size="sm"
+                  onClick={() => router.push('/learning-dashboard')}
+                  className="flex-1 bg-white/60 text-indigo-700 hover:bg-white/80 text-sm h-11 rounded-xl shadow-sm border border-white/50 font-semibold"
+                >
+                  Dashboard
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => router.push('/today-review')}
+                  className="flex-1 bg-white/60 text-rose-600 hover:bg-white/80 text-sm h-11 rounded-xl shadow-sm border border-white/50 font-semibold"
+                >
+                  今日复习
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex-1 px-5 pb-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
+              <div className="space-y-4">
+                  <div className="glass-panel p-5 rounded-2xl">
+                    <p className="text-lg font-bold text-gray-800 mb-2 leading-snug">How about you know {DEFAULT_WORD_NAME}?</p>
+                    <p className="text-base text-gray-500 font-medium">Please choose one choice below and continue to next page.</p>
                   
-                  <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-2.5">
+                  <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-3 mt-4">
                     {learningOptions.map((option) => (
                       <div 
                         key={option.value} 
                         onClick={() => handleOptionChange(option.value)}
-                        className={`flex items-center p-3 rounded-xl cursor-pointer transition-all duration-300 border ${
+                        className={`flex items-center p-4 rounded-2xl cursor-pointer transition-all duration-300 border ${
                           selectedOption === option.value 
                             ? 'bg-indigo-50/80 border-indigo-200 shadow-md transform scale-[1.02]' 
                             : 'glass-card'
@@ -311,9 +299,9 @@ export default function Component() {
                         <RadioGroupItem 
                           value={option.value} 
                           id={option.value} 
-                          className={`mr-3 border-gray-300 ${selectedOption === option.value ? 'border-indigo-500 text-indigo-600' : ''}`} 
+                          className={`mr-4 border-gray-300 w-5 h-5 ${selectedOption === option.value ? 'border-indigo-500 text-indigo-600' : ''}`} 
                         />
-                        <Label htmlFor={option.value} className={`text-[11px] flex-1 cursor-pointer font-medium leading-relaxed ${
+                        <Label htmlFor={option.value} className={`text-base flex-1 cursor-pointer font-medium leading-relaxed ${
                           selectedOption === option.value ? 'text-indigo-900' : 'text-gray-700'
                         }`}>
                           {option.text}
@@ -323,7 +311,7 @@ export default function Component() {
                   </RadioGroup>
                   
                   {recommendationError && (
-                    <div className="p-3 text-[10px] text-rose-600 bg-rose-50/80 backdrop-blur-sm rounded-xl border border-rose-100">
+                    <div className="p-3 text-sm text-rose-600 bg-rose-50/80 backdrop-blur-sm rounded-xl border border-rose-100">
                       {recommendationError}
                     </div>
                   )}
@@ -332,7 +320,7 @@ export default function Component() {
                 <Button
                   onClick={handleContinue}
                   disabled={!selectedOption || isSubmitting}
-                  className="w-full relative group overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 disabled:from-gray-300 disabled:to-gray-300 hover:shadow-lg disabled:shadow-none text-white py-6 text-sm font-bold rounded-2xl mt-4 mb-[calc(env(safe-area-inset-bottom)+1.5rem)] border-none transition-all duration-300"
+                  className="w-full relative group overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 disabled:from-gray-300 disabled:to-gray-300 hover:shadow-lg disabled:shadow-none text-white py-6 text-base font-bold rounded-2xl mt-4 mb-[calc(env(safe-area-inset-bottom)+1.5rem)] border-none transition-all duration-300"
                 >
                   <span className="relative z-10 tracking-wider text-glow">{isSubmitting ? '处理中...' : 'CONTINUE'}</span>
                   {!(!selectedOption || isSubmitting) && (

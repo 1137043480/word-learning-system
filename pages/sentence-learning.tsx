@@ -68,8 +68,8 @@ export default function Component() {
     }
 
     return (
-      <div className="flex-1 px-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
-        <div className="space-y-4">
+      <div className="flex-1 px-5 flex flex-col overflow-y-auto custom-scrollbar relative z-20">
+        <div className="flex-1 space-y-4">
           <div className="glass-panel p-6 rounded-3xl shadow-lg border border-white/60 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 rounded-full mix-blend-multiply filter blur-2xl opacity-50 pointer-events-none -mr-10 -mt-10"></div>
             
@@ -88,11 +88,11 @@ export default function Component() {
             <div className="mt-6 space-y-4 relative z-10 text-left">
                {/* Example Sentences Block */}
                {word.examples && word.examples.length > 0 && (
-                <div className="glass-card p-4 rounded-2xl border border-white/40 space-y-4 mt-4">
+                <div className="glass-card p-5 rounded-2xl border border-white/40 space-y-6 mt-4">
                   {word.examples.map((ex, index) => (
                     <div key={index} className="group flex flex-col relative">
                       <div className="flex justify-between items-start">
-                        <p className="text-[13px] font-semibold text-gray-800 leading-relaxed pr-8">
+                        <p className="text-lg font-semibold text-gray-800 leading-relaxed pr-8">
                           {ex.sentence}
                         </p>
                         <div className="absolute top-0 right-0">
@@ -105,11 +105,11 @@ export default function Component() {
                         </div>
                       </div>
                       {ex.pinyin && (
-                        <p className="text-[11px] text-indigo-600/80 mt-1.5 font-medium tracking-wide">
+                        <p className="text-base text-indigo-600/80 mt-2 font-medium tracking-wide leading-relaxed">
                           {ex.pinyin}
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-base text-gray-600 mt-2 leading-relaxed">
                         {ex.translation}
                       </p>
                     </div>
@@ -136,54 +136,39 @@ export default function Component() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] p-2 shadow-2xl relative">
-        <div className="absolute inset-0 m-2 rounded-[32px] overflow-hidden modern-gradient-bg">
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl z-50"></div>
-
-          <div className="relative z-40 flex justify-between items-center px-4 pt-1.5 text-gray-800 text-xs h-6">
-            <span className="font-medium tracking-wide text-[10px]">6:00</span>
-            <div className="flex items-center space-x-1">
-              <Signal size={12} strokeWidth={2.5} />
-              <Wifi size={12} strokeWidth={2.5} />
-              <Battery size={14} strokeWidth={2.5} />
+    <div className="flex items-center justify-center min-h-[100dvh] bg-gray-50">
+      <div className="w-full max-w-[430px] h-[100dvh] overflow-hidden modern-gradient-bg relative">
+        <div className="h-full pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 flex flex-col relative z-20">
+          <div className="px-5 mb-3">
+            <div className="flex justify-between items-center">
+              <Button
+                className="h-9 px-3 bg-white/40 hover:bg-white/70 shadow-sm text-indigo-700 rounded-xl text-xs font-semibold"
+                variant="ghost"
+                disabled={!previous}
+                onClick={() => handleNavigate('previous')}
+              >
+                ← {previous?.label || '上一模块'}
+              </Button>
+              <h1 className="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-purple-800 tracking-tight leading-none pt-1">sentence</h1>
+              <Button
+                className="h-9 px-3 bg-white/40 hover:bg-white/70 shadow-sm text-indigo-700 rounded-xl text-xs font-semibold"
+                variant="ghost"
+                disabled={!next}
+                onClick={() => handleNavigate('next')}
+              >
+                {next?.label || '结束'} →
+              </Button>
             </div>
+            <p className="text-xs text-indigo-600/70 mt-2 font-medium ml-1">
+              当前模块：{resolveModuleLabel('sentence')}
+            </p>
           </div>
+          
+          {renderBody()}
 
-          <div className="h-full pt-10 pb-4 flex flex-col relative z-20">
-            <div className="px-5 mb-2">
-              <div className="flex justify-between items-center">
-                <Button
-                  className="h-8 px-2 bg-white/40 hover:bg-white/70 shadow-sm text-indigo-700 rounded-lg text-[10px]"
-                  variant="ghost"
-                  disabled={!previous}
-                  onClick={() => handleNavigate('previous')}
-                >
-                  ← {previous?.label || '上一模块'}
-                </Button>
-                <h1 className="text-[14px] font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-purple-800 tracking-tight">sentence</h1>
-                <Button
-                  className="h-8 px-2 bg-white/40 hover:bg-white/70 shadow-sm text-indigo-700 rounded-lg text-[10px]"
-                  variant="ghost"
-                  disabled={!next}
-                  onClick={() => handleNavigate('next')}
-                >
-                  {next?.label || '结束'} →
-                </Button>
-              </div>
-              <p className="text-[10px] text-indigo-600/70 mt-1.5 font-medium ml-1">
-                当前模块：{resolveModuleLabel('sentence')}
-              </p>
-            </div>
-            
-            {renderBody()}
-
-            {/* Decorative blurs */}
-            <div className="absolute top-1/3 -right-12 w-48 h-48 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
-            <div className="absolute bottom-1/3 -left-12 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
-            
-            <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800/20 rounded-full backdrop-blur-xl z-50"></div>
-          </div>
+          {/* Decorative blurs */}
+          <div className="absolute top-1/3 -right-12 w-48 h-48 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
+          <div className="absolute bottom-1/3 -left-12 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
         </div>
       </div>
     </div>

@@ -305,7 +305,7 @@ const Exercise = () => {
     if (next) {
       goTo(next.key);
     } else {
-      router.push('/learning-dashboard-simple');
+      router.push('/learning-dashboard');
     }
   };
 
@@ -358,66 +358,51 @@ const Exercise = () => {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] p-2 shadow-2xl relative">
-        {/* Screen */}
-        <div className="absolute inset-0 m-2 rounded-[32px] overflow-hidden modern-gradient-bg">
-          {/* Notch */}
-          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl z-50"></div>
-          
-          {/* Status Bar */}
-          <div className="relative z-40 flex justify-between items-center px-4 pt-1.5 text-gray-800 text-xs h-6">
-            <span className="font-medium tracking-wide text-[10px]">6:00</span>
-            <div className="flex items-center space-x-1">
-              <Signal size={12} strokeWidth={2.5} />
-              <Wifi size={12} strokeWidth={2.5} />
-              <Battery size={14} strokeWidth={2.5} />
+    <div className="flex items-center justify-center min-h-[100dvh] bg-gray-50">
+      <div className="w-full max-w-[430px] h-[100dvh] overflow-hidden modern-gradient-bg relative">
+        {/* Content */}
+        <div className="h-full pt-[calc(env(safe-area-inset-top)+1rem)] pb-6 flex flex-col relative z-20">
+          <div className="px-5 mb-3">
+            <div className="flex justify-between items-center mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!previous}
+                className="h-9 px-3 bg-transparent hover:bg-white/20 text-indigo-900 rounded-xl text-sm font-semibold shadow-none border border-transparent"
+                onClick={() => {
+                  if (!previous) return;
+                  trackEvent('nav_previous', 'navigation', { targetModule: previous.key });
+                  goTo(previous.key);
+                }}
+              >
+                ← {previous ? previous.label : '上一模块'}
+              </Button>
+              <h1 className="text-xl font-extrabold text-gray-800 tracking-tight pt-1 leading-none">
+                {isTestMode ? 'word test' : (isReviewMode ? 'word review' : 'word exercise')}
+              </h1>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={!next}
+                className="h-8 px-2 bg-transparent hover:bg-white/20 text-indigo-900 rounded-lg text-xs shadow-none border border-transparent"
+                onClick={() => {
+                  if (!next) return;
+                  trackEvent('nav_next', 'navigation', { targetModule: next.key });
+                  goTo(next.key);
+                }}
+              >
+                {next ? next.label : '结束'} →
+              </Button>
             </div>
           </div>
-
-          {/* Content */}
-          <div className="h-full pt-10 pb-6 flex flex-col relative z-20">
-            <div className="px-5 mb-2">
-              <div className="flex justify-between items-center mb-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={!previous}
-                  className="h-8 px-2 bg-transparent hover:bg-white/20 text-indigo-900 rounded-lg text-[10px] shadow-none border border-transparent"
-                  onClick={() => {
-                    if (!previous) return;
-                    trackEvent('nav_previous', 'navigation', { targetModule: previous.key });
-                    goTo(previous.key);
-                  }}
-                >
-                  ← {previous ? previous.label : '上一模块'}
-                </Button>
-                <h1 className="text-[14px] font-bold text-gray-800 tracking-tight">
-                  {isTestMode ? 'word test' : (isReviewMode ? 'word review' : 'word exercise')}
-                </h1>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={!next}
-                  className="h-8 px-2 bg-transparent hover:bg-white/20 text-indigo-900 rounded-lg text-[10px] shadow-none border border-transparent"
-                  onClick={() => {
-                    if (!next) return;
-                    trackEvent('nav_next', 'navigation', { targetModule: next.key });
-                    goTo(next.key);
-                  }}
-                >
-                  {next ? next.label : '结束'} →
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex-1 px-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
+          
+          <div className="flex-1 px-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
                 <div className="space-y-3">
                   <ReviewReminder userId={userId} showInline={true} />
                   
                 {/* Title and Audio play */}
                 <div>
-                  <h2 className="text-[16px] font-extrabold text-gray-900 leading-snug mb-3 tracking-wide">
+                  <h2 className="text-xl font-extrabold text-gray-900 leading-snug mb-3 tracking-wide">
                     {questionIndex + 1}. {currentQuestion.type === 'definition' ? 
                       'Find responding word.' : 
                       currentQuestion.type === 'collocation' ? 'Find right collocation.' : 
@@ -426,7 +411,7 @@ const Exercise = () => {
                     }
                   </h2>
                   <div className="mb-6 flex gap-2 items-center">
-                    <p className="text-[14px] font-bold text-gray-800">
+                    <p className="text-base font-bold text-gray-800">
                       {currentQuestion.type === 'definition' ? 
                         `() ${currentQuestion.question}` : currentQuestion.question}
                     </p>
@@ -503,8 +488,8 @@ const Exercise = () => {
                             onClick={() => handleOptionChange(option)}
                             className={btnClass}
                           >
-                            <span className="text-[14px] leading-snug break-words flex items-center">
-                              <span className={`mr-2.5 ${showFeedback && option === currentQuestion.correctAnswer ? 'text-white/90' : 'text-indigo-400'}`}>{letter}.</span> 
+                            <span className="text-base leading-snug break-words flex items-center">
+                              <span className={`mr-3 ${showFeedback && option === currentQuestion.correctAnswer ? 'text-white/90' : 'text-indigo-400'}`}>{letter}.</span> 
                               <span>{option}</span>
                             </span>
                             {isHanziOption && !showFeedback && (
@@ -554,10 +539,10 @@ const Exercise = () => {
                                  <p className="text-[14px] font-bold text-gray-800 leading-snug mb-1.5">
                                    不愿意发生的事情终于出现了。['发生']
                                  </p>
-                                 <p className="text-[13px] font-medium text-gray-700 leading-snug tracking-wider mb-1.5">
+                                 <p className="text-base font-medium text-gray-700 leading-snug tracking-wider mb-1.5">
                                    不/bù 愿意/yuànyì 发生/fāshēng 的/de 事情/shìqíng 终于/zhōngyú 出现/chūxiàn 了/le 。
                                  </p>
-                                 <p className="text-[13px] font-normal text-gray-500 leading-snug">
+                                 <p className="text-base font-normal text-gray-500 leading-snug">
                                    What I didn't want to happen finally happened.
                                  </p>
                               </>
@@ -568,7 +553,7 @@ const Exercise = () => {
                            ) : (
                              <p className="text-[14px] font-bold text-gray-800 leading-relaxed tracking-wide">
                                <span className="mr-2 text-indigo-700">{wordLabel}</span> {word.pinyin} <br/>
-                               <span className="text-[13px] font-medium text-gray-600 font-mono mt-1 inline-block">{wordDefinition}</span>
+                               <span className="text-base font-medium text-gray-600 font-mono mt-1 inline-block">{wordDefinition}</span>
                              </p>
                            )}
                          </div>
@@ -613,7 +598,6 @@ const Exercise = () => {
 
             {/* Home Indicator */}
             <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gray-800/20 rounded-full backdrop-blur-xl z-50"></div>
-          </div>
         </div>
       </div>
     </div>

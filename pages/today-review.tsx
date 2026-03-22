@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { buildApiUrl } from "@/src/lib/apiClient";
 import { useLearningContext } from '@/src/context/LearningContext';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
-import { Battery, Signal, Wifi, Clock, BookOpen, TrendingUp } from 'lucide-react';
+import { Clock, BookOpen, TrendingUp } from 'lucide-react';
 
 interface ReviewItem {
   word_id: number;
@@ -50,15 +50,13 @@ const TodayReview = () => {
   };
 
   const startReview = (review: ReviewItem) => {
-    // 更新学习会话状态
     updateSession({
       wordId: review.word_id,
       word: review.word,
       module: review.recommended_module,
-      vksLevel: undefined // 复习不需要VKS等级
+      vksLevel: undefined
     });
 
-    // 根据推荐模块跳转到对应页面
     const moduleRoutes: Record<string, string> = {
       character: '/character-learning',
       word: '/word-learning',
@@ -72,9 +70,9 @@ const TodayReview = () => {
   };
 
   const getPriorityBadge = (score: number) => {
-    if (score > 0.8) return <Badge variant="destructive">高优先级</Badge>;
-    if (score > 0.5) return <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-sm">中优先级</Badge>;
-    return <Badge variant="secondary">低优先级</Badge>;
+    if (score > 0.8) return <Badge variant="destructive" className="text-sm px-3 py-1">高优先级</Badge>;
+    if (score > 0.5) return <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-sm text-sm px-3 py-1">中优先级</Badge>;
+    return <Badge variant="secondary" className="text-sm px-3 py-1">低优先级</Badge>;
   };
 
   const getMasteryColor = (level: number) => {
@@ -97,147 +95,152 @@ const TodayReview = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans items-center justify-center">
-        <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl relative min-h-[844px] flex flex-col items-center justify-center">
+      <div className="flex items-center justify-center min-h-[100dvh] bg-gray-50">
+        <div className="w-full max-w-[430px] h-[100dvh] overflow-hidden modern-gradient-bg relative flex flex-col items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600 text-sm">Loading reviews...</p>
+          <p className="text-base text-gray-600">Loading reviews...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex flex-col font-sans">
-      <div className="w-full max-w-md mx-auto bg-white/40 backdrop-blur-xl border border-white/60 shadow-2xl overflow-hidden relative min-h-[844px] flex flex-col">
-        {/* Header */}
-        <div className="px-6 pt-12 pb-6 flex items-center justify-between border-b border-white/30 bg-white/20">
-          <h1 className="text-xl font-bold flex items-center text-indigo-950">
-            <Clock className="mr-2 text-indigo-500" size={20} />
-            Today's Review
-          </h1>
-          <p className="text-xs text-indigo-600 font-medium">
-            {reviews.length} due
-          </p>
-        </div>
+    <div className="flex items-center justify-center min-h-[100dvh] bg-gray-50">
+      <div className="w-full max-w-[430px] h-[100dvh] overflow-hidden modern-gradient-bg relative">
+        <div className="h-full pt-[calc(env(safe-area-inset-top)+1rem)] pb-4 flex flex-col relative z-20">
+          {/* Header */}
+          <div className="px-5 pb-5 flex items-center justify-between border-b border-white/30 bg-white/10 mb-2">
+            <h1 className="text-2xl font-bold flex items-center text-indigo-950">
+              <Clock className="mr-2 text-indigo-500" size={24} />
+              Today's Review
+            </h1>
+            <p className="text-base text-indigo-600 font-semibold">
+              {reviews.length} due
+            </p>
+          </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-          {error && (
-            <div className="glass-card p-4 rounded-2xl border border-red-200 bg-red-50/50 text-center">
-              <p className="text-sm text-red-600 mb-3">❌ {error}</p>
-              <Button 
-                size="sm" 
-                onClick={fetchDueReviews}
-                className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl"
-              >
-                Reload
-              </Button>
-            </div>
-          )}
-
-          {!error && reviews.length === 0 && (
-            <div className="glass-card p-8 rounded-2xl border border-indigo-100 bg-white/60 text-center mt-10">
-              <div className="text-5xl mb-4">🎉</div>
-              <p className="text-lg font-bold text-indigo-950 mb-2">Awesome!</p>
-              <p className="text-sm text-gray-600 mb-6">You've completed all your reviews for today.</p>
-              <Button 
-                onClick={() => router.push('/word-learning-entrance')}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 h-12"
-              >
-                Learn New Words
-              </Button>
-            </div>
-          )}
-
-          {reviews.map((review, index) => (
-            <div 
-              key={`${review.word_id}-${index}`}
-              className="glass-card p-4 rounded-2xl border border-white/60 bg-white/40 hover:bg-white/60 transition-colors shadow-sm cursor-pointer"
-              onClick={() => setSelectedReview(review)}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-indigo-950">{review.word}</h3>
-                  <p className="text-xs text-gray-500">
-                    Reviewed {review.review_count} times
-                  </p>
-                </div>
-                {getPriorityBadge(review.priority_score)}
-              </div>
-              
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Mastery</span>
-                  <span className={`font-semibold ${getMasteryColor(review.mastery_level)}`}>
-                    {(review.mastery_level * 100).toFixed(0)}%
-                  </span>
-                </div>
-                
-                <div className="w-full bg-indigo-100/50 rounded-full h-1.5 overflow-hidden">
-                  <div 
-                    className={`h-1.5 rounded-full ${
-                      review.mastery_level >= 0.8 ? 'bg-emerald-400' :
-                      review.mastery_level >= 0.6 ? 'bg-blue-400' :
-                      review.mastery_level >= 0.4 ? 'bg-amber-400' :
-                      'bg-rose-400'
-                    }`}
-                    style={{ width: `${review.mastery_level * 100}%` }}
-                  ></div>
-                </div>
-                
-                {review.days_overdue > 0 && (
-                  <p className="text-xs text-rose-500 font-medium mt-1">
-                    ⚠️ {review.days_overdue} days overdue
-                  </p>
-                )}
-              </div>
-              
-              <div className="flex items-center justify-between pt-2 border-t border-indigo-50/50">
-                <span className="text-xs text-gray-500 flex items-center font-medium">
-                  <BookOpen size={12} className="mr-1.5" />
-                  {getModuleLabel(review.recommended_module)}
-                </span>
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 custom-scrollbar">
+            {error && (
+              <div className="glass-card p-5 rounded-2xl border border-red-200 bg-red-50/50 text-center">
+                <p className="text-base text-red-600 mb-4">❌ {error}</p>
                 <Button 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    startReview(review);
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-1.5 h-8 rounded-full shadow-md shadow-indigo-600/20"
+                  size="sm" 
+                  onClick={fetchDueReviews}
+                  className="w-full bg-red-500 hover:bg-red-600 text-white rounded-xl h-11 text-base"
                 >
-                  Start Review
+                  Reload
                 </Button>
               </div>
-            </div>
-          ))}
+            )}
+
+            {!error && reviews.length === 0 && (
+              <div className="glass-card p-10 rounded-3xl border border-indigo-100 bg-white/60 text-center mt-8">
+                <div className="text-6xl mb-5">🎉</div>
+                <p className="text-2xl font-bold text-indigo-950 mb-3">Awesome!</p>
+                <p className="text-lg text-gray-600 mb-8 leading-relaxed">You've completed all your reviews for today.</p>
+                <Button 
+                  onClick={() => router.push('/word-learning-entrance')}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 h-13 text-base font-semibold py-3"
+                >
+                  Learn New Words
+                </Button>
+              </div>
+            )}
+
+            {reviews.map((review, index) => (
+              <div 
+                key={`${review.word_id}-${index}`}
+                className="glass-card p-5 rounded-2xl border border-white/60 bg-white/40 hover:bg-white/60 transition-colors shadow-sm cursor-pointer"
+                onClick={() => setSelectedReview(review)}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-xl text-indigo-950">{review.word}</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Reviewed {review.review_count} times
+                    </p>
+                  </div>
+                  {getPriorityBadge(review.priority_score)}
+                </div>
+                
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Mastery</span>
+                    <span className={`font-semibold ${getMasteryColor(review.mastery_level)}`}>
+                      {(review.mastery_level * 100).toFixed(0)}%
+                    </span>
+                  </div>
+                  
+                  <div className="w-full bg-indigo-100/50 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        review.mastery_level >= 0.8 ? 'bg-emerald-400' :
+                        review.mastery_level >= 0.6 ? 'bg-blue-400' :
+                        review.mastery_level >= 0.4 ? 'bg-amber-400' :
+                        'bg-rose-400'
+                      }`}
+                      style={{ width: `${review.mastery_level * 100}%` }}
+                    ></div>
+                  </div>
+                  
+                  {review.days_overdue > 0 && (
+                    <p className="text-sm text-rose-500 font-medium mt-1">
+                      ⚠️ {review.days_overdue} days overdue
+                    </p>
+                  )}
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 border-t border-indigo-50/50">
+                  <span className="text-sm text-gray-500 flex items-center font-medium">
+                    <BookOpen size={14} className="mr-1.5" />
+                    {getModuleLabel(review.recommended_module)}
+                  </span>
+                  <Button 
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startReview(review);
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-5 py-2 h-9 rounded-full shadow-md shadow-indigo-600/20"
+                  >
+                    Start Review
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="px-5 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] shrink-0 space-y-3 pt-3">
+            {reviews.length > 0 && (
+              <Button
+                onClick={() => {
+                  if (reviews[0]) {
+                    startReview(reviews[0]);
+                  }
+                }}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 h-12 text-base font-semibold"
+              >
+                Start First Review
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => router.push('/')}
+              className="w-full bg-white/50 border-white/60 text-gray-700 hover:bg-white/80 hover:text-indigo-600 h-12 rounded-xl font-semibold backdrop-blur-md text-base"
+            >
+              Back to Home
+            </Button>
+          </div>
         </div>
 
-        {/* Bottom Actions */}
-        <div className="p-6 bg-white/30 backdrop-blur-md border-t border-white/40 space-y-3 pb-8">
-          {reviews.length > 0 && (
-            <Button
-              onClick={() => {
-                if (reviews[0]) {
-                  startReview(reviews[0]);
-                }
-              }}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 h-12 text-base font-semibold"
-            >
-              Start First Review
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => router.push('/')}
-            className="w-full bg-white/50 border-white/60 text-gray-700 hover:bg-white/80 hover:text-indigo-600 h-12 rounded-xl font-semibold backdrop-blur-md"
-          >
-            Back to Home
-          </Button>
-        </div>
+        {/* Decorative blurs */}
+        <div className="absolute top-1/3 -right-12 w-48 h-48 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
+        <div className="absolute bottom-1/3 -left-12 w-48 h-48 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none z-10"></div>
       </div>
     </div>
   );
 };
 
 export default TodayReview;
-
