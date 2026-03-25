@@ -1,0 +1,19 @@
+name: PR Quality
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+jobs:
+  prguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 1137043480/prguard@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          max-failures: 3
+          comment-on-pr: 'true'
