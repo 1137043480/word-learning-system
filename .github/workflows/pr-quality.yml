@@ -12,6 +12,9 @@ jobs:
   prguard:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: 1137043480/prguard@main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -23,3 +26,7 @@ jobs:
           max-failures: 3
           comment-on-pr: 'true'
           disable-auto-exempt: 'true'
+          verify-imports: 'true'
+          check-code-style: 'true'
+          check-pr-history: 'true'
+          check-multi-pr: 'true'
