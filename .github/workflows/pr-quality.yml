@@ -17,3 +17,4 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           max-failures: 3
           comment-on-pr: 'true'
+          disable-auto-exempt: 'true'
