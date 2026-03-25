@@ -19,7 +19,7 @@ jobs:
           ai-provider: 'openai'
           ai-api-key: ${{ secrets.OPENAI_API_KEY }}
           ai-base-url: ${{ secrets.OPENAI_BASE_URL }}
-          ai-model: 'gpt-4o-mini'
+          ai-model: 'gpt-5.3-codex'
           max-failures: 3
           comment-on-pr: 'true'
           disable-auto-exempt: 'true'
