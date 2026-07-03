@@ -1755,13 +1755,6 @@ def initialize_database():
                 except Exception as e:
                     print(f"⚠️  测试数据生成失败: {str(e)}")
             
-            # 注册易混淆词API
-            if register_confusable_apis:
-                try:
-                    register_confusable_apis(app, db, require_authentication, check_data_ownership)
-                except Exception as e:
-                    print(f"⚠️  易混淆词API注册失败: {str(e)}")
-        
         # 初始化推荐引擎
         init_recommendation_engine()
         
