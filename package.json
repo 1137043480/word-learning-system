@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "python3 -m pytest tests -q",
+    "test:e2e": "node tests/e2e/smoke.test.js"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -39,6 +41,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-react": "^7.37.0",
     "postcss": "^8.5.3",
+    "puppeteer-core": "^24.43.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^4.9.5"
   }

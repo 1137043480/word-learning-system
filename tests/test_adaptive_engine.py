@@ -1,0 +1,382 @@
+#!/usr/bin/env python3
+"""
+自适应引擎算法层单元测试
+
+覆盖改良 SM-2 间隔计算、质量因子、ease factor、
+模块推荐规则和到期复习优先级排序。
+
+运行: python3 -m pytest tests/test_adaptive_engine.py -v
+"""
+
+import sqlite3
+import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from adaptive_engine import AdaptiveRecommendationEngine, SpacedRepetitionAlgorithm
+
+
+# ================================================
+# 夹具
+# ================================================
+
+@pytest.fixture
+def db_path(tmp_path):
+    """建一个最小可用的临时数据库（word + user_progress）"""
+    path = str(tmp_path / 'test.db')
+    conn = sqlite3.connect(path)
+    conn.executescript("""
+        CREATE TABLE word (
+            id INTEGER NOT NULL PRIMARY KEY,
+            pinyin VARCHAR(80) NOT NULL,
+            definition VARCHAR(200) NOT NULL
+        );
+        CREATE TABLE user_progress (
+            id INTEGER NOT NULL PRIMARY KEY,
+            user_id VARCHAR(50) NOT NULL,
+            word_id INTEGER NOT NULL,
+            mastery_level FLOAT,
+            confidence_score FLOAT,
+            difficulty_rating FLOAT,
+            total_study_time_seconds INTEGER,
+            total_sessions INTEGER,
+            total_attempts INTEGER,
+            correct_attempts INTEGER,
+            character_study_count INTEGER,
+            word_study_count INTEGER,
+            collocation_study_count INTEGER,
+            sentence_study_count INTEGER,
+            definition_attempts INTEGER,
+            definition_correct INTEGER,
+            collocation_attempts INTEGER,
+            collocation_correct INTEGER,
+            fill_word_attempts INTEGER,
+            fill_word_correct INTEGER,
+            first_studied DATETIME,
+            last_studied DATETIME,
+            next_review_suggested DATETIME,
+            review_count INTEGER,
+            consecutive_correct INTEGER,
+            consecutive_incorrect INTEGER,
+            learning_efficiency FLOAT,
+            retention_rate FLOAT,
+            created_at DATETIME,
+            updated_at DATETIME,
+            FOREIGN KEY(word_id) REFERENCES word (id)
+        );
+    """)
+    conn.execute("INSERT INTO word (id, pinyin, definition) VALUES (1, 'fāshēng', 'happen')")
+    conn.execute("INSERT INTO word (id, pinyin, definition) VALUES (2, 'túrán', 'sudden')")
+    conn.commit()
+    conn.close()
+    return path
+
+
+@pytest.fixture
+def engine(db_path):
+    return AdaptiveRecommendationEngine(db_path)
+
+
+@pytest.fixture
+def spaced(db_path):
+    return SpacedRepetitionAlgorithm(db_path)
+
+
+def insert_progress(db_path, user_id='u1', word_id=1, **overrides):
+    """插入一条 user_progress，未指定字段用合理默认值"""
+    row = {
+        'user_id': user_id,
+        'word_id': word_id,
+        'mastery_level': 0.5,
+        'total_study_time_seconds': 600,
+        'total_sessions': 3,
+        'total_attempts': 10,
+        'correct_attempts': 7,
+        'character_study_count': 1,
+        'word_study_count': 2,
+        'collocation_study_count': 1,
+        'sentence_study_count': 1,
+        'last_studied': datetime.now() - timedelta(days=1),
+        'next_review_suggested': datetime.now() + timedelta(days=1),
+        'review_count': 1,
+        'consecutive_correct': 1,
+        'consecutive_incorrect': 0,
+        'learning_efficiency': 1.0,
+        'created_at': datetime.now(),
+        'updated_at': datetime.now(),
+    }
+    row.update(overrides)
+    conn = sqlite3.connect(db_path)
+    cols = ', '.join(row.keys())
+    marks = ', '.join('?' * len(row))
+    conn.execute(f"INSERT INTO user_progress ({cols}) VALUES ({marks})", list(row.values()))
+    conn.commit()
+    conn.close()
+
+
+# ================================================
+# 质量因子 calculate_quality_factor
+# ================================================
+
+class TestQualityFactor:
+    def test_incorrect_answer_capped_at_two(self, engine):
+        q = engine.calculate_quality_factor({'is_correct': False, 'response_time': 5.0})
+        assert 0 <= q <= 2
+
+    def test_incorrect_with_hesitation_lower(self, engine):
+        base = engine.calculate_quality_factor({'is_correct': False, 'hesitation_count': 0})
+        hesitant = engine.calculate_quality_factor({'is_correct': False, 'hesitation_count': 2})
+        assert hesitant < base
+
+    def test_incorrect_never_negative(self, engine):
+        q = engine.calculate_quality_factor({'is_correct': False, 'hesitation_count': 10})
+        assert q == 0
+
+    def test_fast_confident_correct_is_high(self, engine):
+        q = engine.calculate_quality_factor(
+            {'is_correct': True, 'response_time': 2.0, 'confidence': 5, 'hesitation_count': 0})
+        assert q >= 4
+
+    def test_slow_correct_lower_than_fast_correct(self, engine):
+        fast = engine.calculate_quality_factor({'is_correct': True, 'response_time': 2.0})
+        slow = engine.calculate_quality_factor({'is_correct': True, 'response_time': 20.0})
+        assert slow < fast
+
+    def test_quality_bounded_zero_to_five(self, engine):
+        cases = [
+            {'is_correct': True, 'response_time': 1.0, 'confidence': 5},
+            {'is_correct': True, 'response_time': 30.0, 'confidence': 1, 'hesitation_count': 8},
+            {'is_correct': False, 'hesitation_count': 5},
+        ]
+        for case in cases:
+            assert 0 <= engine.calculate_quality_factor(case) <= 5
+
+
+# ================================================
+# Ease factor
+# ================================================
+
+class TestEaseFactor:
+    def test_default_at_medium_mastery(self, engine):
+        assert engine.get_ease_factor(0.5, 0) == pytest.approx(2.5)
+
+    def test_clamped_to_min(self, engine):
+        assert engine.get_ease_factor(0.0, 0) >= engine.min_ease_factor
+
+    def test_clamped_to_max(self, engine):
+        assert engine.get_ease_factor(1.0, 100) <= engine.max_ease_factor
+
+    def test_consecutive_bonus_caps(self, engine):
+        five = engine.get_ease_factor(0.5, 5)
+        many = engine.get_ease_factor(0.5, 50)
+        assert five == pytest.approx(many)  # 连续正确加成封顶 0.5
+
+    def test_higher_mastery_higher_ease(self, engine):
+        assert engine.get_ease_factor(0.9, 0) > engine.get_ease_factor(0.2, 0)
+
+
+# ================================================
+# 复习间隔基线 get_previous_interval
+# ================================================
+
+class TestPreviousInterval:
+    def test_within_base_intervals(self, engine):
+        for i, expected in enumerate(engine.base_intervals):
+            assert engine.get_previous_interval(i) == expected
+
+    def test_beyond_base_grows_exponentially(self, engine):
+        n = len(engine.base_intervals)
+        assert engine.get_previous_interval(n) == engine.base_intervals[-1] * 2
+        assert engine.get_previous_interval(n + 1) == engine.base_intervals[-1] * 4
+
+
+# ================================================
+# SM-2 下次复习时间 calculate_next_review_time
+# ================================================
+
+class TestNextReviewTime:
+    def test_wrong_answer_resets_to_one_day(self, engine, db_path):
+        insert_progress(db_path, mastery_level=0.9, review_count=5, consecutive_correct=4)
+        next_review = engine.calculate_next_review_time(
+            'u1', 1, {'is_correct': False, 'response_time': 5.0})
+        delta = next_review - datetime.now()
+        assert timedelta(hours=23) < delta < timedelta(hours=25)
+
+    def test_new_word_first_interval_short(self, engine, db_path):
+        # 数据库无记录 → 新词，首次间隔应为最短档
+        next_review = engine.calculate_next_review_time(
+            'nobody', 1, {'is_correct': True, 'response_time': 5.0})
+        delta = next_review - datetime.now()
+        assert delta < timedelta(days=2)
+
+    def test_mastered_word_gets_longer_interval_than_weak(self, engine, db_path):
+        insert_progress(db_path, user_id='strong', word_id=1,
+                        mastery_level=0.9, review_count=4, consecutive_correct=4)
+        insert_progress(db_path, user_id='weak', word_id=1,
+                        mastery_level=0.2, review_count=4, consecutive_correct=0)
+        result = {'is_correct': True, 'response_time': 5.0}
+        strong_review = engine.calculate_next_review_time('strong', 1, result)
+        weak_review = engine.calculate_next_review_time('weak', 1, result)
+        assert strong_review > weak_review
+
+    def test_interval_bounded_one_to_365_days(self, engine, db_path):
+        insert_progress(db_path, user_id='max', word_id=1,
+                        mastery_level=1.0, review_count=20, consecutive_correct=20)
+        next_review = engine.calculate_next_review_time(
+            'max', 1, {'is_correct': True, 'response_time': 1.0, 'confidence': 5})
+        delta = next_review - datetime.now()
+        assert delta <= timedelta(days=366)
+
+    def test_fast_response_extends_interval(self, engine, db_path):
+        insert_progress(db_path, user_id='fast', word_id=1,
+                        mastery_level=0.6, review_count=3, consecutive_correct=2)
+        insert_progress(db_path, user_id='slow', word_id=1,
+                        mastery_level=0.6, review_count=3, consecutive_correct=2)
+        fast_review = engine.calculate_next_review_time(
+            'fast', 1, {'is_correct': True, 'response_time': 2.0})
+        slow_review = engine.calculate_next_review_time(
+            'slow', 1, {'is_correct': True, 'response_time': 12.0})
+        assert fast_review > slow_review
+
+
+# ================================================
+# 模块推荐规则
+# ================================================
+
+class TestModuleRecommendation:
+    def test_vks_mapping(self, engine):
+        assert engine.recommend_module_by_vks('A') == 'character'
+        assert engine.recommend_module_by_vks('B') == 'word'
+        assert engine.recommend_module_by_vks('C') == 'collocation'
+        assert engine.recommend_module_by_vks('D') == 'sentence'
+        assert engine.recommend_module_by_vks('E') == 'exercise'
+
+    def test_vks_unknown_falls_back_to_word(self, engine):
+        assert engine.recommend_module_by_vks('X') == 'word'
+        assert engine.recommend_module_by_vks('') == 'word'
+
+    def test_new_user_starts_with_character(self, engine):
+        pattern = {'type': 'new_user', 'accuracy': 'unknown'}
+        assert engine.recommend_module_by_pattern(pattern, 0.0) == 'character'
+
+    def test_low_mastery_low_accuracy_gets_character(self, engine):
+        pattern = {'type': 'experienced_user', 'accuracy': 'low'}
+        assert engine.recommend_module_by_pattern(pattern, 0.2) == 'character'
+
+    def test_mid_mastery_gets_collocation(self, engine):
+        pattern = {'type': 'experienced_user', 'accuracy': 'high'}
+        assert engine.recommend_module_by_pattern(pattern, 0.5) == 'collocation'
+
+    def test_high_mastery_gets_sentence(self, engine):
+        pattern = {'type': 'experienced_user', 'accuracy': 'high'}
+        assert engine.recommend_module_by_pattern(pattern, 0.8) == 'sentence'
+
+
+# ================================================
+# 学习时间估算
+# ================================================
+
+class TestEstimateLearningTime:
+    def test_high_efficiency_shortens(self, engine):
+        base = engine.estimate_learning_time({'efficiency': 'medium'}, 'word')
+        fast = engine.estimate_learning_time({'efficiency': 'high'}, 'word')
+        assert fast < base
+
+    def test_low_efficiency_extends(self, engine):
+        base = engine.estimate_learning_time({'efficiency': 'medium'}, 'word')
+        slow = engine.estimate_learning_time({'efficiency': 'low'}, 'word')
+        assert slow > base
+
+    def test_unknown_module_uses_default_base(self, engine):
+        assert engine.estimate_learning_time({'efficiency': 'medium'}, 'nonexistent') == 300
+
+
+# ================================================
+# 用户模式分析
+# ================================================
+
+class TestUserPattern:
+    def test_new_user_detected(self, engine):
+        pattern = engine.analyze_user_learning_pattern('ghost_user')
+        assert pattern['type'] == 'new_user'
+
+    def test_experienced_user_levels(self, engine, db_path):
+        insert_progress(db_path, user_id='pro', word_id=1,
+                        learning_efficiency=1.5, total_attempts=20, correct_attempts=18)
+        pattern = engine.analyze_user_learning_pattern('pro')
+        assert pattern['type'] == 'experienced_user'
+        assert pattern['efficiency'] == 'high'
+        assert pattern['accuracy'] == 'high'
+
+
+# ================================================
+# 推荐主流程
+# ================================================
+
+class TestRecommendationFlow:
+    REQUIRED_KEYS = {'type', 'priority', 'confidence'}
+
+    def test_urgent_review_triggers(self, engine, db_path):
+        insert_progress(
+            db_path, user_id='u1', word_id=1,
+            mastery_level=0.5,
+            last_studied=datetime.now() - timedelta(days=8),
+            consecutive_incorrect=2,
+        )
+        rec = engine.get_next_recommendation('u1')
+        assert rec['type'] == 'urgent_review'
+        assert rec['word_id'] == 1
+        assert self.REQUIRED_KEYS <= set(rec)
+
+    def test_new_user_gets_valid_recommendation(self, engine):
+        rec = engine.get_next_recommendation('brand_new_user')
+        assert self.REQUIRED_KEYS <= set(rec)
+        assert 0 <= rec['confidence'] <= 1
+
+
+# ================================================
+# 间隔重复：到期复习
+# ================================================
+
+class TestDueReviews:
+    def test_only_due_items_returned(self, spaced, db_path):
+        insert_progress(db_path, user_id='u1', word_id=1,
+                        next_review_suggested=datetime.now() - timedelta(days=2))
+        insert_progress(db_path, user_id='u1', word_id=2,
+                        next_review_suggested=datetime.now() + timedelta(days=5))
+        reviews = spaced.get_due_reviews('u1')
+        assert [r['word_id'] for r in reviews] == [1]
+
+    def test_priority_favors_weak_and_overdue(self, spaced, db_path):
+        insert_progress(db_path, user_id='u1', word_id=1,
+                        mastery_level=0.9,
+                        next_review_suggested=datetime.now() - timedelta(days=1))
+        insert_progress(db_path, user_id='u1', word_id=2,
+                        mastery_level=0.1, consecutive_incorrect=3,
+                        next_review_suggested=datetime.now() - timedelta(days=10))
+        reviews = spaced.get_due_reviews('u1')
+        assert reviews[0]['word_id'] == 2  # 掌握差且逾期久的优先
+
+    def test_limit_respected(self, spaced, db_path):
+        for word_id in (1, 2):
+            insert_progress(db_path, user_id='u1', word_id=word_id,
+                            next_review_suggested=datetime.now() - timedelta(days=1))
+        assert len(spaced.get_due_reviews('u1', limit=1)) == 1
+
+    def test_update_after_exercise_persists(self, spaced, db_path):
+        insert_progress(db_path, user_id='u1', word_id=1, review_count=1)
+        result = spaced.update_user_progress_after_exercise(
+            'u1', 1, {'is_correct': True, 'response_time': 4.0, 'consecutive_correct': 2})
+        assert result['success'] is True
+
+        conn = sqlite3.connect(db_path)
+        row = conn.execute(
+            "SELECT review_count, next_review_suggested FROM user_progress "
+            "WHERE user_id='u1' AND word_id=1").fetchone()
+        conn.close()
+        assert row[0] == 2  # review_count 已自增
+        assert datetime.fromisoformat(row[1]) > datetime.now()
