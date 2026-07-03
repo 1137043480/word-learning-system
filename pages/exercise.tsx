@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Battery, Signal, Wifi, Volume2 } from 'lucide-react';
 import { useComprehensiveTracking } from '@/hooks/useTimeTracking';
-import { fetchWordExercises } from '@/src/lib/apiClient';
+import { fetchWordExercises, buildApiUrl } from '@/src/lib/apiClient';
 import type { ExerciseQuestionPayload } from '@/src/lib/types';
 import { useLearningContext } from '@/src/context/LearningContext';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
@@ -302,6 +302,19 @@ const Exercise = () => {
 
     await endSession(true);
 
+    // 主线收尾环节：若本词存在易混淆词，先进入辨析再看学习分析
+    try {
+      const resp = await fetch(buildApiUrl(`/api/confusable/for-word/${wordId}`));
+      const result = await resp.json();
+      if (result.success && result.pair_id) {
+        trackEvent('confusable_step', 'exercise-end', { wordId, pairId: result.pair_id });
+        router.push(`/confusable-words?pair=${result.pair_id}&from=exercise`);
+        return;
+      }
+    } catch {
+      // 查询失败不阻塞主流程
+    }
+
     if (next) {
       goTo(next.key);
     } else {
@@ -531,24 +544,28 @@ const Exercise = () => {
                           </div>
                        )}
 
-                       {/* 内嵌知识点 */}
+                       {/* 内嵌知识点（取当前词的真实例句/搭配） */}
                        {word && (
                          <div className="mb-6">
-                           {currentQuestion.type === 'fill_word' || currentQuestion.type === 'choose_word' ? (
+                           {(currentQuestion.type === 'fill_word' || currentQuestion.type === 'choose_word') && word.examples?.[0] ? (
                               <>
                                  <p className="text-[14px] font-bold text-gray-800 leading-snug mb-1.5">
-                                   不愿意发生的事情终于出现了。['发生']
+                                   {word.examples[0].sentence}
                                  </p>
-                                 <p className="text-base font-medium text-gray-700 leading-snug tracking-wider mb-1.5">
-                                   不/bù 愿意/yuànyì 发生/fāshēng 的/de 事情/shìqíng 终于/zhōngyú 出现/chūxiàn 了/le 。
-                                 </p>
-                                 <p className="text-base font-normal text-gray-500 leading-snug">
-                                   What I didn't want to happen finally happened.
-                                 </p>
+                                 {word.examples[0].pinyin && (
+                                   <p className="text-base font-medium text-gray-700 leading-snug tracking-wider mb-1.5">
+                                     {word.examples[0].pinyin}
+                                   </p>
+                                 )}
+                                 {word.examples[0].translation && (
+                                   <p className="text-base font-normal text-gray-500 leading-snug">
+                                     {word.examples[0].translation}
+                                   </p>
+                                 )}
                               </>
-                           ) : currentQuestion.type === 'collocation' ? (
+                           ) : currentQuestion.type === 'collocation' && word.collocations?.[0] ? (
                               <p className="text-[14px] font-bold text-gray-800 leading-relaxed tracking-wide">
-                                 容易（三级） 发生 easy to happen
+                                 {word.collocations[0].collocation} {word.collocations[0].translation}
                               </p>
                            ) : (
                              <p className="text-[14px] font-bold text-gray-800 leading-relaxed tracking-wide">

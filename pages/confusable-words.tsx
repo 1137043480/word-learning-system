@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
@@ -8,11 +9,13 @@ interface ConfusablePair {
   id: number;
   word1: {
     id: number;
+    hanzi?: string | null;
     pinyin: string;
     definition: string;
   };
   word2: {
     id: number;
+    hanzi?: string | null;
     pinyin: string;
     definition: string;
   };
@@ -27,15 +30,29 @@ interface ConfusablePair {
  * 易混淆词辨析学习页面
  */
 export default function ConfusableWordsPage() {
+  const router = useRouter();
   const [pairs, setPairs] = useState<ConfusablePair[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
+  // 从练习流程带入时（?pair=<id>&from=exercise）定位到对应组并提供“继续主线”出口
+  const fromExercise = router.query.from === 'exercise';
 
   useEffect(() => {
     loadConfusablePairs();
   }, []);
+
+  useEffect(() => {
+    if (!router.isReady || pairs.length === 0) return;
+    const pairId = Number(router.query.pair);
+    if (!pairId) return;
+    const idx = pairs.findIndex(p => p.id === pairId);
+    if (idx >= 0) {
+      setCurrentIndex(idx);
+      setShowAnswer(false);
+    }
+  }, [router.isReady, router.query.pair, pairs]);
 
   const loadConfusablePairs = async () => {
     try {
@@ -109,16 +126,19 @@ export default function ConfusableWordsPage() {
         <div className="grid grid-cols-2 gap-3">
           {/* 词1 */}
           <div className="glass-panel rounded-2xl p-4 border-l-4 border-l-indigo-400">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1">
               <h3 className="text-xl font-bold text-indigo-700">
-                {currentPair.word1.pinyin}
+                {currentPair.word1.hanzi ?? currentPair.word1.pinyin}
               </h3>
               <AudioPlayer
-                text={currentPair.word1.pinyin}
+                text={currentPair.word1.hanzi ?? currentPair.word1.pinyin}
                 language="zh-CN"
                 buttonSize="sm"
               />
             </div>
+            {currentPair.word1.hanzi && (
+              <p className="text-sm text-indigo-400 font-medium mb-1.5">{currentPair.word1.pinyin}</p>
+            )}
             <p className="text-sm text-gray-600 leading-relaxed">
               {currentPair.word1.definition}
             </p>
@@ -126,16 +146,19 @@ export default function ConfusableWordsPage() {
 
           {/* 词2 */}
           <div className="glass-panel rounded-2xl p-4 border-l-4 border-l-emerald-400">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1">
               <h3 className="text-xl font-bold text-emerald-700">
-                {currentPair.word2.pinyin}
+                {currentPair.word2.hanzi ?? currentPair.word2.pinyin}
               </h3>
               <AudioPlayer
-                text={currentPair.word2.pinyin}
+                text={currentPair.word2.hanzi ?? currentPair.word2.pinyin}
                 language="zh-CN"
                 buttonSize="sm"
               />
             </div>
+            {currentPair.word2.hanzi && (
+              <p className="text-sm text-emerald-500 font-medium mb-1.5">{currentPair.word2.pinyin}</p>
+            )}
             <p className="text-sm text-gray-600 leading-relaxed">
               {currentPair.word2.definition}
             </p>
@@ -226,23 +249,33 @@ export default function ConfusableWordsPage() {
 
           {/* Navigation */}
           {!loading && !error && pairs.length > 0 && (
-            <div className="px-5 pt-3 flex gap-3">
-              <Button
-                variant="ghost"
-                className="flex-1 h-11 rounded-2xl text-gray-700 bg-white/60 hover:bg-white/90 border border-white/60 disabled:opacity-40 transition-all"
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-              >
-                <ArrowLeft size={16} className="mr-1.5" /> 上一组
-              </Button>
-              <Button
-                variant="ghost"
-                className="flex-1 h-11 rounded-2xl text-gray-700 bg-white/60 hover:bg-white/90 border border-white/60 disabled:opacity-40 transition-all"
-                onClick={handleNext}
-                disabled={currentIndex === pairs.length - 1}
-              >
-                下一组 <ArrowRight size={16} className="ml-1.5" />
-              </Button>
+            <div className="px-5 pt-3 space-y-2.5">
+              {fromExercise && (
+                <Button
+                  onClick={() => router.push('/learning-dashboard')}
+                  className="w-full h-12 rounded-2xl border-none text-white font-bold tracking-wide text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300"
+                >
+                  完成辨析 · 查看学习分析 <ArrowRight size={16} className="ml-1.5" />
+                </Button>
+              )}
+              <div className="flex gap-3">
+                <Button
+                  variant="ghost"
+                  className="flex-1 h-11 rounded-2xl text-gray-700 bg-white/60 hover:bg-white/90 border border-white/60 disabled:opacity-40 transition-all"
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                >
+                  <ArrowLeft size={16} className="mr-1.5" /> 上一组
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-1 h-11 rounded-2xl text-gray-700 bg-white/60 hover:bg-white/90 border border-white/60 disabled:opacity-40 transition-all"
+                  onClick={handleNext}
+                  disabled={currentIndex === pairs.length - 1}
+                >
+                  下一组 <ArrowRight size={16} className="ml-1.5" />
+                </Button>
+              </div>
             </div>
           )}
         </div>

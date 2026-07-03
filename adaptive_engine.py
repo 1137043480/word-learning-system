@@ -189,6 +189,7 @@ class AdaptiveRecommendationEngine:
                 LEFT JOIN user_progress up ON w.id = up.word_id AND up.user_id = ?
                 WHERE COALESCE(up.mastery_level, 0) < ?
                 AND (up.user_id IS NULL OR up.last_studied < datetime('now', '-3 days'))
+                AND EXISTS (SELECT 1 FROM example e WHERE e.word_id = w.id)
                 ORDER BY COALESCE(up.mastery_level, 0) ASC, RANDOM()
                 LIMIT 5
             """, (user_id, self.mastery_threshold))

@@ -51,6 +51,8 @@ export default function Component() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recommendationMessage, setRecommendationMessage] = useState<string | null>(null);
   const [recommendationError, setRecommendationError] = useState<string | null>(null);
+  // 本次要测评的目标词：由推荐引擎决定（挂载后加载，初始用默认词保证水合一致）
+  const [targetWord, setTargetWord] = useState<{ id: number; word: string } | null>(null);
   const router = useRouter();
   const { userId, availableUsers } = useLearningContext();
 
@@ -87,6 +89,27 @@ export default function Component() {
     setSelectedOption(learningSession.vksLevel ?? '');
   }, [learningSession.vksLevel]);
 
+  // 从推荐引擎获取本次学习的目标词
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    fetch(buildApiUrl(`/api/adaptive/recommendation/${userId}`), { cache: 'no-cache' })
+      .then(resp => resp.json())
+      .then(result => {
+        if (cancelled || !result.success || !result.data) return;
+        const { word_id: wordId, word } = result.data;
+        if (wordId && word) {
+          setTargetWord({ id: wordId, word });
+        }
+      })
+      .catch(() => {
+        /* 拉取失败时保持默认词，不阻塞流程 */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
   useEffect(() => {
     updateConfig({ userId });
   }, [userId, updateConfig]);
@@ -94,7 +117,7 @@ export default function Component() {
   useEffect(() => {
     trackPageEnter('word-learning-entrance');
     trackEvent('vks_test_start', 'entrance', {
-      word: DEFAULT_WORD_NAME,
+      word: targetWord?.word ?? DEFAULT_WORD_NAME,
       startTime: pageStartTime.toISOString(),
       userId
     });
@@ -152,8 +175,8 @@ export default function Component() {
     setIsSubmitting(true);
     setRecommendationError(null);
 
-    let resolvedWordId = DEFAULT_WORD_ID;
-    let resolvedWord = DEFAULT_WORD_NAME;
+    let resolvedWordId = targetWord?.id ?? DEFAULT_WORD_ID;
+    let resolvedWord = targetWord?.word ?? DEFAULT_WORD_NAME;
     let resolvedModule = resolveModuleRoute(undefined, selectedLearning.path, selectedLearning.label);
 
     const context = {
@@ -174,8 +197,12 @@ export default function Component() {
           const result = await response.json();
           if (result.success && result.data) {
             const data = result.data;
-            resolvedWordId = data.word_id ?? data.wordId ?? DEFAULT_WORD_ID;
-            resolvedWord = data.word ?? resolvedWord;
+            // 词以页面展示的 targetWord 为准（问的是哪个词就学哪个词），
+            // 仅当挂载时没拿到推荐才采用本次返回的词
+            if (!targetWord) {
+              resolvedWordId = data.word_id ?? data.wordId ?? DEFAULT_WORD_ID;
+              resolvedWord = data.word ?? resolvedWord;
+            }
             resolvedModule = resolveModuleRoute(data.recommended_module ?? data.recommendedModule ?? data.type, selectedLearning.path, selectedLearning.label);
 
             trackEvent('recommendation_received', 'entrance', {
@@ -282,7 +309,7 @@ export default function Component() {
             <div className="flex-1 px-5 pb-5 flex flex-col justify-between overflow-y-auto custom-scrollbar relative z-20">
               <div className="space-y-4">
                   <div className="glass-panel p-5 rounded-2xl">
-                    <p className="text-lg font-bold text-gray-800 mb-2 leading-snug">How about you know {DEFAULT_WORD_NAME}?</p>
+                    <p className="text-lg font-bold text-gray-800 mb-2 leading-snug">How about you know {targetWord?.word ?? DEFAULT_WORD_NAME}?</p>
                     <p className="text-base text-gray-500 font-medium">Please choose one choice below and continue to next page.</p>
                   
                   <RadioGroup value={selectedOption} onValueChange={handleOptionChange} className="space-y-3 mt-4">

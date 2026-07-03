@@ -19,7 +19,7 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
             difficulty = request.args.get('difficulty', type=int)
             
             sql = """
-                SELECT 
+                SELECT
                     cp.id,
                     cp.word1_id,
                     cp.word2_id,
@@ -31,12 +31,16 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
                     cp.difference,
                     cp.examples,
                     cp.tips,
-                    cp.difficulty_level
+                    cp.difficulty_level,
+                    (SELECT GROUP_CONCAT(character, '') FROM
+                        (SELECT character FROM character WHERE word_id = w1.id ORDER BY id)) as word1_hanzi,
+                    (SELECT GROUP_CONCAT(character, '') FROM
+                        (SELECT character FROM character WHERE word_id = w2.id ORDER BY id)) as word2_hanzi
                 FROM confusable_pairs cp
                 JOIN word w1 ON cp.word1_id = w1.id
                 JOIN word w2 ON cp.word2_id = w2.id
             """
-            
+
             if difficulty:
                 sql += " WHERE cp.difficulty_level = :difficulty"
             
@@ -54,11 +58,13 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
                     'id': row[0],
                     'word1': {
                         'id': row[1],
+                        'hanzi': row[12],
                         'pinyin': row[3],
                         'definition': row[5]
                     },
                     'word2': {
                         'id': row[2],
+                        'hanzi': row[13],
                         'pinyin': row[4],
                         'definition': row[6]
                     },
@@ -75,6 +81,20 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
                 'total': len(pairs)
             })
             
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
+
+    @app.route('/api/confusable/for-word/<int:word_id>', methods=['GET'])
+    def get_confusable_for_word(word_id):
+        """查询某词是否有易混淆词对（用于学习流程中带出辨析环节）"""
+        try:
+            query = text("""
+                SELECT id FROM confusable_pairs
+                WHERE word1_id = :word_id OR word2_id = :word_id
+                LIMIT 1
+            """)
+            row = db.session.execute(query, {'word_id': word_id}).fetchone()
+            return jsonify({'success': True, 'pair_id': row[0] if row else None})
         except Exception as e:
             return jsonify({'success': False, 'error': str(e)}), 500
 

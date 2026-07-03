@@ -35,10 +35,11 @@ const EXPECTED_ERROR_PATTERNS = {
   '/system-status': [/ERR_CONNECTION_REFUSED/, /localhost:500[12]/],
 };
 
-// 首页各入口的 router.push 目标（对应 pages/index.tsx）
+// 首页各入口的 router.push 目标（对应 pages/index.tsx；
+// 今日复习/易混词辨析已融入主流程，不再是首页入口）
 const HOME_NAV_TARGETS = [
-  '/word-learning-entrance', '/learning-dashboard', '/today-review',
-  '/confusable-words', '/learning-stats', '/login', '/system-status',
+  '/word-learning-entrance', '/learning-dashboard',
+  '/learning-stats', '/login', '/system-status',
 ];
 
 // 学习链路页面（每页顶部有 ← / → 导航按钮）

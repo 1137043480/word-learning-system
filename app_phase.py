@@ -236,6 +236,11 @@ def get_db_connection():
     """获取数据库连接"""
     return sqlite3.connect(app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', ''))
 
+def get_word_hanzi(word_id):
+    """由 character 表按顺序拼出词的汉字（word 表没有 hanzi 列）"""
+    chars = Character.query.filter_by(word_id=word_id).order_by(Character.id).all()
+    return ''.join(c.character for c in chars) if chars else None
+
 def init_recommendation_engine():
     """初始化推荐引擎"""
     global recommendation_engine, spaced_repetition
@@ -327,7 +332,14 @@ def get_word(id):
 @app.route('/words', methods=['GET'])
 def list_words():
     words = Word.query.all()
-    words_data = [{'id': word.id, 'pinyin': word.pinyin, 'definition': word.definition} for word in words]
+    # 汉字由 character 表按插入顺序拼接（word 表历史上没有 hanzi 列）
+    hanzi_map = {}
+    for char in Character.query.order_by(Character.id).all():
+        hanzi_map[char.word_id] = hanzi_map.get(char.word_id, '') + char.character
+    words_data = [
+        {'id': word.id, 'hanzi': hanzi_map.get(word.id), 'pinyin': word.pinyin, 'definition': word.definition}
+        for word in words
+    ]
     return jsonify(words_data)
 
 @app.route('/exercise/submit', methods=['POST'])
@@ -935,12 +947,12 @@ def get_adaptive_recommendation(user_id, current_user_id=None, **kwargs):
         if recommendation_engine:
             recommendation = recommendation_engine.get_next_recommendation(user_id, context)
             
-            # --- BEGIN PROTOTYPE OVERRIDE ---
-            # 强制将推荐词汇设置为"发生" (word_id: 1) 以匹配原型设计
-            recommendation['word_id'] = 1
-            recommendation['word'] = '发生'
-            recommendation['reason'] = '推荐学习新词汇，当前掌握程度较低'
-            
+            # 引擎返回的 word 字段是 pinyin 列，展示时换成汉字
+            if recommendation.get('word_id'):
+                hanzi = get_word_hanzi(recommendation['word_id'])
+                if hanzi:
+                    recommendation['word'] = hanzi
+
             # 根据 VKS 测试选项动态分配入口
             vks_level = context.get('vks_level') if context else None
             if vks_level:
@@ -954,7 +966,6 @@ def get_adaptive_recommendation(user_id, current_user_id=None, **kwargs):
                 recommendation['recommended_module'] = vks_modules.get(vks_level, 'word')
             elif recommendation.get('recommended_module') is None:
                 recommendation['recommended_module'] = 'word'
-            # --- END PROTOTYPE OVERRIDE ---
             
             # 保存推荐记录
             rec_id = recommendation_engine.save_recommendation(user_id, recommendation)
@@ -1182,14 +1193,24 @@ def get_system_stats():
 # ================================================
 
 def get_simple_recommendation(user_id, context):
-    """简化版推荐（当推荐引擎不可用时）"""
+    """简化版推荐（当推荐引擎不可用时）：选一个用户还没学过的词"""
+    studied = db.session.query(UserProgress.word_id).filter_by(user_id=user_id)
+    has_materials = db.session.query(Example.word_id)
+    word = (
+        Word.query.filter(Word.id.in_(has_materials), ~Word.id.in_(studied)).order_by(Word.id).first()
+        or Word.query.filter(Word.id.in_(has_materials)).order_by(Word.id).first()
+        or Word.query.order_by(Word.id).first()
+    )
+    vks_modules = {'A': 'character', 'B': 'word', 'C': 'collocation', 'D': 'sentence', 'E': 'exercise'}
+    vks_level = context.get('vks_level') if context else None
+    hanzi = get_word_hanzi(word.id) if word else None
     return {
         'type': 'simple_recommendation',
         'priority': 'medium',
-        'word_id': 1,
-        'word': '发生',
-        'reason': '继续学习基础词汇',
-        'recommended_module': context.get('vks_level', 'B') if context else 'word',
+        'word_id': word.id if word else 1,
+        'word': hanzi or (word.pinyin if word else '发生'),
+        'reason': '继续学习新词汇',
+        'recommended_module': vks_modules.get(vks_level, 'word'),
         'confidence': 0.5,
         'estimated_time': 300,
         'algorithm_version': 'simple_1.0'

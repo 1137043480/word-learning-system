@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
-import { BookOpen, GraduationCap, ArrowRight, Activity, Zap, BarChart2 } from 'lucide-react';
+import { BookOpen, GraduationCap, ArrowRight, Activity, BarChart2 } from 'lucide-react';
 import { fetchJson } from '@/src/lib/apiClient';
 import { useLearningContext } from '@/src/context/LearningContext';
 
@@ -86,25 +86,10 @@ const Home = () => {
               </p>
             </div>
 
-            {/* 附加功能：明确降级为主线之外的工具，不与“开始学习”并列。
-                今日复习不再单独设入口——复习由主入口按记忆曲线自动安排 */}
+            {/* 数据入口：易混词辨析已融入主学习流程（练习后自动带出），
+                今日复习由主入口按记忆曲线安排，均不再单独设入口 */}
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-gray-400 tracking-wide px-1">学完主线后，还可以</p>
-              <button
-                onClick={() => router.push('/confusable-words')}
-                className="glass-card rounded-2xl px-4 py-3.5 w-full flex items-center gap-3.5"
-              >
-                <div className="bg-amber-50 text-amber-500 p-2.5 rounded-xl shrink-0">
-                  <Zap size={20} />
-                </div>
-                <div className="text-left flex-1">
-                  <p className="text-base font-semibold text-gray-700">易混词辨析</p>
-                  <p className="text-xs text-gray-400">附加练习 · 区分「二/两」「突然/忽然」这类近义词</p>
-                </div>
-                <ArrowRight size={16} className="text-gray-300 shrink-0" />
-              </button>
-
-              <p className="text-xs font-semibold text-gray-400 tracking-wide px-1 pt-2">查看数据</p>
+              <p className="text-xs font-semibold text-gray-400 tracking-wide px-1">查看数据</p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => router.push('/learning-dashboard')}
