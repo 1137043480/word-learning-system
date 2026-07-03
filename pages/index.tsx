@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Button } from "@/components/ui/button";
-import { BookOpen, GraduationCap, ArrowRight, Activity, Zap, BarChart2, RefreshCw } from 'lucide-react';
+import { BookOpen, GraduationCap, ArrowRight, Activity, Zap, BarChart2 } from 'lucide-react';
 import { fetchJson } from '@/src/lib/apiClient';
 import { useLearningContext } from '@/src/context/LearningContext';
 
@@ -86,56 +86,52 @@ const Home = () => {
               </p>
             </div>
 
-            {/* Grid Actions：各入口标注职责，避免与主线混淆 */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => router.push('/today-review')}
-                className="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2 relative"
-              >
-                {hasDue && (
-                  <span className="absolute top-3 right-3 min-w-[20px] h-5 px-1.5 rounded-full bg-rose-500 text-white text-xs font-bold flex items-center justify-center shadow-sm">
-                    {dueCount}
-                  </span>
-                )}
-                <div className="bg-rose-50 text-rose-500 p-3 rounded-xl">
-                  <RefreshCw size={22} />
-                </div>
-                <span className="text-base font-semibold text-gray-700">今日复习</span>
-                <span className="text-xs text-gray-400">只做到期词复习</span>
-              </button>
-
+            {/* 附加功能：明确降级为主线之外的工具，不与“开始学习”并列。
+                今日复习不再单独设入口——复习由主入口按记忆曲线自动安排 */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-gray-400 tracking-wide px-1">学完主线后，还可以</p>
               <button
                 onClick={() => router.push('/confusable-words')}
-                className="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2"
+                className="glass-card rounded-2xl px-4 py-3.5 w-full flex items-center gap-3.5"
               >
-                <div className="bg-amber-50 text-amber-500 p-3 rounded-xl">
-                  <Zap size={22} />
+                <div className="bg-amber-50 text-amber-500 p-2.5 rounded-xl shrink-0">
+                  <Zap size={20} />
                 </div>
-                <span className="text-base font-semibold text-gray-700">易混词辨</span>
-                <span className="text-xs text-gray-400">专项辨析练习</span>
+                <div className="text-left flex-1">
+                  <p className="text-base font-semibold text-gray-700">易混词辨析</p>
+                  <p className="text-xs text-gray-400">附加练习 · 区分「二/两」「突然/忽然」这类近义词</p>
+                </div>
+                <ArrowRight size={16} className="text-gray-300 shrink-0" />
               </button>
 
-              <button
-                onClick={() => router.push('/learning-dashboard')}
-                className="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2"
-              >
-                <div className="bg-blue-50 text-blue-500 p-3 rounded-xl">
-                  <Activity size={22} />
-                </div>
-                <span className="text-base font-semibold text-gray-700">我的数据</span>
-                <span className="text-xs text-gray-400">进度与智能推荐</span>
-              </button>
+              <p className="text-xs font-semibold text-gray-400 tracking-wide px-1 pt-2">查看数据</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => router.push('/learning-dashboard')}
+                  className="glass-card rounded-2xl px-4 py-3 flex items-center gap-3"
+                >
+                  <div className="bg-blue-50 text-blue-500 p-2 rounded-lg shrink-0">
+                    <Activity size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-700">我的数据</p>
+                    <p className="text-xs text-gray-400">进度与推荐</p>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => router.push('/learning-stats')}
-                className="glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-2"
-              >
-                <div className="bg-emerald-50 text-emerald-500 p-3 rounded-xl">
-                  <BarChart2 size={22} />
-                </div>
-                <span className="text-base font-semibold text-gray-700">分析报告</span>
-                <span className="text-xs text-gray-400">系统统计数据</span>
-              </button>
+                <button
+                  onClick={() => router.push('/learning-stats')}
+                  className="glass-card rounded-2xl px-4 py-3 flex items-center gap-3"
+                >
+                  <div className="bg-emerald-50 text-emerald-500 p-2 rounded-lg shrink-0">
+                    <BarChart2 size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-gray-700">分析报告</p>
+                    <p className="text-xs text-gray-400">系统统计</p>
+                  </div>
+                </button>
+              </div>
             </div>
 
             {/* Bottom minor actions */}
