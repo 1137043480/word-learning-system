@@ -67,7 +67,9 @@ const persistSessionToStorage = (userId: string, session: LearningSessionState) 
 
 export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { userId } = useLearningContext();
-  const [session, setSession] = useState<LearningSessionState>(() => loadSessionFromStorage(userId));
+  // 初始值必须与 SSR 一致（不读 localStorage），挂载后由下方 effect 加载存储值，
+  // 否则老用户带着存储的会话回访时会触发 React 水合错误
+  const [session, setSession] = useState<LearningSessionState>(DEFAULT_SESSION);
 
   useEffect(() => {
     setSession(loadSessionFromStorage(userId));

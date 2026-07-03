@@ -51,9 +51,10 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# 配置数据库
+# 配置数据库（WORDS_DB_PATH 环境变量可覆盖，供测试/部署使用）
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'words_extended.db')
+_db_path = os.environ.get('WORDS_DB_PATH', os.path.join(basedir, 'words_extended.db'))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + _db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -182,6 +183,26 @@ class AdaptiveRecommendation(db.Model):
     is_accepted = db.Column(db.Boolean)
     actual_choice = db.Column(db.String(100))
     effectiveness_score = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class ConfusablePair(db.Model):
+    __tablename__ = 'confusable_pairs'
+    id = db.Column(db.Integer, primary_key=True)
+    word1_id = db.Column(db.Integer, db.ForeignKey('word.id'), nullable=False)
+    word2_id = db.Column(db.Integer, db.ForeignKey('word.id'), nullable=False)
+    reason = db.Column(db.Text)
+    difference = db.Column(db.Text)
+    examples = db.Column(db.Text)
+    tips = db.Column(db.Text)
+    difficulty_level = db.Column(db.Integer, default=1)
+
+class ConfusableExerciseRecord(db.Model):
+    __tablename__ = 'confusable_exercise_records'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String(50), nullable=False)
+    pair_id = db.Column(db.Integer, db.ForeignKey('confusable_pairs.id'), nullable=False)
+    is_correct = db.Column(db.Boolean, nullable=False)
+    response_time = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # 全局推荐引擎实例
@@ -1428,8 +1449,85 @@ def validate_session():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ================================================
+# 易混淆词辨析API
+# ================================================
+
+try:
+    from confusable_api import register_confusable_apis
+    register_confusable_apis(app, db, require_authentication, check_data_ownership)
+except ImportError:
+    print("⚠️  易混淆词API模块未找到，相关功能不可用")
+
+# ================================================
 # 应用初始化
 # ================================================
+
+def seed_confusable_pairs():
+    """添加易混淆词初始数据（HSK中级典型易混词对）"""
+    pairs_data = [
+        {
+            'word1': ('突然 tūrán', 'sudden; suddenly (can be adj. or adv.)'),
+            'word2': ('忽然 hūrán', 'suddenly (adv. only)'),
+            'reason': '两个词都表示"事情发生得快、出乎意料"，且都能作状语，意思几乎相同。',
+            'difference': '「突然」是形容词，可以作状语、定语、谓语，可以被"很、非常"修饰；\n「忽然」是副词，只能作状语，不能被程度副词修饰。',
+            'examples': '✓ 天气突然变冷了。／天气忽然变冷了。（都可以）\n✓ 这件事发生得很突然。\n✗ 这件事发生得很忽然。（错误）\n✓ 突然的变化让大家吃惊。\n✗ 忽然的变化让大家吃惊。（错误）',
+            'tips': '能说"很突然"，不能说"很忽然"——记住：突然是形容词，忽然只是副词。',
+            'difficulty_level': 2,
+        },
+        {
+            'word1': ('常常 chángcháng', 'often; frequently (subjective habit)'),
+            'word2': ('往往 wǎngwǎng', 'often; tend to (objective regularity)'),
+            'reason': '都表示某种情况经常发生，中文学习者常常互换使用。',
+            'difference': '「常常」表示主观意愿的经常性行为，可用于将来和否定（不常常）；\n「往往」表示根据经验总结的规律性，必须带条件或情境，不能用于将来。',
+            'examples': '✓ 我常常去图书馆。\n✓ 周末的时候，他往往在家看书。\n✗ 明年我往往去锻炼。（错误：往往不能用于将来）\n✓ 明年我要常常去锻炼。',
+            'tips': '「往往」= 规律总结，前面通常有条件（周末/下雨天…）；「常常」= 个人习惯，随时可用。',
+            'difficulty_level': 3,
+        },
+        {
+            'word1': ('刚 gāng', 'just; only a short while ago (adv.)'),
+            'word2': ('刚才 gāngcái', 'just now; a moment ago (time noun)'),
+            'reason': '都表示"不久之前"，发音相近，意思相近。',
+            'difference': '「刚」是副词，只能放在动词前作状语，表示的时间可长可短；\n「刚才」是时间名词，可以放在句首、主语前后，也可作定语，只指几分钟前。',
+            'examples': '✓ 他刚走。／他刚才走的。\n✓ 刚才的事请你别介意。\n✗ 刚的事请你别介意。（错误）\n✓ 我刚来北京一个月。\n✗ 我刚才来北京一个月。（错误）',
+            'tips': '「刚才」是名词，能说"刚才的+名词"；「刚」是副词，后面只能跟动词。',
+            'difficulty_level': 2,
+        },
+        {
+            'word1': ('一直 yìzhí', 'continuously; all along (uninterrupted)'),
+            'word2': ('一向 yíxiàng', 'always; consistently (habitual attitude)'),
+            'reason': '都表示动作或状态持续不变，都作状语。',
+            'difference': '「一直」强调动作不间断地持续，可用于过去、现在、将来，也可指空间方向；\n「一向」指从过去到现在的一贯习惯或态度，多与表示态度、性格的词搭配，不能用于将来或空间。',
+            'examples': '✓ 雨一直下了三天。\n✗ 雨一向下了三天。（错误）\n✓ 他一向很谦虚。\n✓ 一直往前走，然后右转。\n✗ 一向往前走。（错误）',
+            'tips': '指方向（一直走）或将来，只能用「一直」；说人的一贯性格态度，多用「一向」。',
+            'difficulty_level': 3,
+        },
+        {
+            'word1': ('二 èr', 'two (used in numbers, ordinals, fractions)'),
+            'word2': ('两 liǎng', 'two (used before measure words)'),
+            'reason': '都表示数字2，但使用场合不同，是初中级学习者的高频错误。',
+            'difference': '「两」用在量词前（两个人、两本书）和"千/万/亿"前；\n「二」用于序数（第二）、小数、分数、号码，以及"十"前（二十）。',
+            'examples': '✓ 两个人／两本书\n✗ 二个人（错误）\n✓ 第二课／二十块钱\n✗ 第两课／两十块钱（错误）\n✓ 两千块／二千块（都可以，两千更常用）',
+            'tips': '量词前用「两」，排序和数数用「二」。',
+            'difficulty_level': 1,
+        },
+    ]
+
+    for item in pairs_data:
+        w1 = Word(pinyin=item['word1'][0], definition=item['word1'][1])
+        w2 = Word(pinyin=item['word2'][0], definition=item['word2'][1])
+        db.session.add_all([w1, w2])
+        db.session.flush()  # 先拿到 word id 再建词对
+        db.session.add(ConfusablePair(
+            word1_id=w1.id,
+            word2_id=w2.id,
+            reason=item['reason'],
+            difference=item['difference'],
+            examples=item['examples'],
+            tips=item['tips'],
+            difficulty_level=item['difficulty_level'],
+        ))
+    db.session.commit()
+    print(f"✅ 易混淆词数据添加完成（{len(pairs_data)} 组）")
 
 def initialize_database():
     """初始化数据库和测试数据"""
@@ -1490,10 +1588,17 @@ def initialize_database():
                 db.session.commit()
                 print("✅ 初始数据添加完成")
             
+            # 检查是否需要添加易混淆词数据
+            if ConfusablePair.query.count() == 0:
+                print("📝 添加易混淆词数据...")
+                seed_confusable_pairs()
+
             # 检查是否有测试数据
             if UserProfile.query.count() == 0:
                 print("📊 生成测试数据...")
                 try:
+                    import sys
+                    sys.path.insert(0, os.path.join(basedir, 'scripts'))
                     import simple_test_data
                     simple_test_data.generate_simple_test_data()
                 except Exception as e:

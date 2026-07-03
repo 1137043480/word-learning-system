@@ -3,6 +3,7 @@
  * 用于记录用户学习行为和时间数据，支持自适应学习算法
  */
 import { getApiBaseUrl } from '@/src/lib/apiClient';
+import { authenticatedFetch } from '@/src/lib/authClient';
 
 export interface TimeTrackingConfig {
   userId: string;
@@ -42,6 +43,7 @@ export class TimeTracker {
   private config: TimeTrackingConfig;
   private apiBaseUrl: string;
   private batchEventTimer: NodeJS.Timeout | null = null;
+  private disabled: boolean = false; // 未登录时停用网络上报，避免 401
 
   constructor(config: TimeTrackingConfig, apiBaseUrl: string = getApiBaseUrl()) {
     this.config = config;
@@ -49,7 +51,12 @@ export class TimeTracker {
     this.sessionId = this.generateSessionId();
     this.startTime = new Date();
     this.lastActiveTime = new Date();
-    
+    this.disabled =
+      typeof window === 'undefined' || !window.localStorage.getItem('session_token');
+    if (this.disabled) {
+      console.info('⏸️ 未登录，学习时间追踪已停用（事件仅记录在本地）');
+    }
+
     this.initializeTracking();
   }
 
@@ -83,10 +90,10 @@ export class TimeTracker {
   }
 
   private async startSession() {
+    if (this.disabled) return;
     try {
-      const response = await fetch(`${this.apiBaseUrl}/api/learning/session/start`, {
+      const response = await authenticatedFetch('/api/learning/session/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: this.sessionId,
           userId: this.config.userId,
@@ -139,10 +146,10 @@ export class TimeTracker {
    * 记录练习数据
    */
   public async trackExercise(exerciseData: ExerciseData) {
+    if (this.disabled) return;
     try {
-      const response = await fetch(`${this.apiBaseUrl}/api/learning/exercise/record`, {
+      const response = await authenticatedFetch('/api/learning/exercise/record', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: this.sessionId,
           questionId: exerciseData.questionId,
@@ -215,10 +222,16 @@ export class TimeTracker {
       eventCount: this.events.length
     });
 
+    if (this.disabled) {
+      if (this.batchEventTimer) {
+        clearInterval(this.batchEventTimer);
+        this.batchEventTimer = null;
+      }
+      return;
+    }
     try {
-      const response = await fetch(`${this.apiBaseUrl}/api/learning/session/end`, {
+      const response = await authenticatedFetch('/api/learning/session/end', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: this.sessionId,
           endTime: endTime.toISOString(),

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Battery, Signal, Wifi, Eye, EyeOff } from 'lucide-react';
+import StatusBarTime from '@/components/StatusBarTime';
 import { buildApiUrl } from "@/src/lib/apiClient";
 
 const Login = () => {
@@ -62,7 +63,7 @@ const Login = () => {
 
             {/* Status Bar */}
             <div className="relative z-10 flex justify-between items-center px-4 pt-1.5 text-black text-xs h-6">
-              <span>{new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+              <StatusBarTime />
               <div className="flex items-center space-x-1">
                 <Signal size={14} />
                 <Wifi size={14} />

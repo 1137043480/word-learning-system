@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Battery, Signal, Wifi, ArrowLeft, ArrowRight } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
+import { buildApiUrl } from '@/src/lib/apiClient';
 
 interface ConfusablePair {
   id: number;
@@ -39,7 +40,7 @@ export default function ConfusableWordsPage() {
   const loadConfusablePairs = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/confusable/pairs?limit=20');
+      const response = await fetch(buildApiUrl('/api/confusable/pairs?limit=20'));
       const data = await response.json();
       
       if (data.success) {

@@ -119,7 +119,21 @@ def generate_simple_test_data():
                 datetime.now(), datetime.now()
             ))
         
-        # 5. 生成学习事件
+        # 5. 生成学习事件（表结构与 models_extended.LearningEvent 一致）
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS learning_event (
+                id INTEGER PRIMARY KEY,
+                session_id VARCHAR(100) NOT NULL,
+                event_type VARCHAR(50) NOT NULL,
+                event_target VARCHAR(100),
+                event_data TEXT,
+                timestamp DATETIME NOT NULL,
+                page_url VARCHAR(200),
+                is_active BOOLEAN DEFAULT 1,
+                focus_time_seconds FLOAT,
+                created_at DATETIME
+            )
+        """)
         for i in range(100):
             session_id = random.choice(sessions)
             event_data = {

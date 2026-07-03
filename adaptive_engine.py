@@ -352,8 +352,10 @@ class AdaptiveRecommendationEngine:
             if not result:
                 return 'word'  # 默认复习模块
             
-            def_attempts, def_correct, coll_attempts, coll_correct, fill_attempts, fill_correct = result
-            
+            # 题型统计字段允许为 NULL（从未做过该题型），按 0 处理
+            (def_attempts, def_correct, coll_attempts, coll_correct,
+             fill_attempts, fill_correct) = (value or 0 for value in result)
+
             # 计算各题型准确率
             def_rate = (def_correct / def_attempts) if def_attempts > 0 else 1.0
             coll_rate = (coll_correct / coll_attempts) if coll_attempts > 0 else 1.0

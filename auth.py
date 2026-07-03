@@ -6,15 +6,17 @@
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
+import os
 import secrets
 import sqlite3
 from datetime import datetime, timedelta
 
 class AuthManager:
     """用户认证管理器"""
-    
-    def __init__(self, db_path='words_extended.db'):
-        self.db_path = db_path
+
+    def __init__(self, db_path=None):
+        # WORDS_DB_PATH 环境变量可覆盖数据库路径，与 app_phase2 保持一致
+        self.db_path = db_path or os.environ.get('WORDS_DB_PATH', 'words_extended.db')
         self.session_lifetime = timedelta(days=7)  # Session有效期7天
     
     def get_connection(self):

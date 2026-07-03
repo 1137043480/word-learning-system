@@ -136,7 +136,7 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
 
     @app.route('/api/confusable/exercise/record', methods=['POST'])
     @require_authentication()
-    def record_confusable_exercise(current_user_id=None):
+    def record_confusable_exercise(current_user_id=None, **kwargs):
         """记录易混淆词辨析练习"""
         try:
             data = request.get_json()
@@ -173,7 +173,7 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
     @app.route('/api/confusable/user/<user_id>/statistics', methods=['GET'])
     @require_authentication()
     @check_ownership()
-    def get_confusable_statistics(user_id, current_user_id=None):
+    def get_confusable_statistics(user_id, current_user_id=None, **kwargs):
         """获取用户的易混淆词辨析统计"""
         try:
             query = text("""

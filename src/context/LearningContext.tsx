@@ -102,10 +102,18 @@ const sortUsers = (users: LearningUser[]) =>
   users.slice().sort((a, b) => a.userId.localeCompare(b.userId));
 
 export const LearningProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
-  const [userId, setUserIdState] = useState<string>(() => readInitialUserId());
-  const [availableUsers, setAvailableUsers] = useState<LearningUser[]>(() => readInitialUsers());
-  const [apiBaseUrl, setApiBaseUrlState] = useState<string>(() => getApiBaseUrl());
+  // 初始值必须与 SSR 一致（不读 localStorage），挂载后由下方 effect 加载存储值，
+  // 否则老用户回访时首次客户端渲染与预渲染 HTML 不一致，触发水合错误
+  const [userId, setUserIdState] = useState<string>(DEFAULT_USERS[0].userId);
+  const [availableUsers, setAvailableUsers] = useState<LearningUser[]>(DEFAULT_USERS);
+  const [apiBaseUrl, setApiBaseUrlState] = useState<string>(() => getDefaultApiBaseUrl());
   const [usersLoading, setUsersLoading] = useState(false);
+
+  useEffect(() => {
+    setUserIdState(readInitialUserId());
+    setAvailableUsers(readInitialUsers());
+    setApiBaseUrlState(getApiBaseUrl());
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
