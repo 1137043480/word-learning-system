@@ -9,6 +9,12 @@ module.exports = {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
   },
+  // 旧路由重定向：/phase2-demo 在 refactor 中更名
+  async redirects() {
+    return [
+      { source: '/phase2-demo', destination: '/phase-demo', permanent: true },
+    ];
+  },
   // 浏览器端 API 走相对路径：生产由 Nginx 代理到后端，
   // 本地 dev / npm start 由这里的 rewrites 代理到 Flask (5004)
   async rewrites() {
