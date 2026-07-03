@@ -450,8 +450,8 @@ def require_auth(f):
                 'code': 'INVALID_SESSION'
             }), 401
         
-        # 将user_id添加到request context
-        request.user_id = validation['user_id']
+        # 将user_id添加到request context（Flask 动态属性）
+        request.user_id = validation['user_id']  # pyrefly: ignore
         
         return f(*args, **kwargs)
     

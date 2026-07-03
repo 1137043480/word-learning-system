@@ -44,7 +44,7 @@ except ImportError:
     get_current_user_from_request = lambda: (None, False)
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)  # 支持credentials以便使用cookies
+CORS(app, supports_credentials=True)  # pyrefly: ignore  # 支持credentials以便使用cookies
 
 # 配置Session
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -217,7 +217,7 @@ def init_recommendation_engine():
     """初始化推荐引擎"""
     global recommendation_engine, spaced_repetition
     
-    if AdaptiveRecommendationEngine:
+    if AdaptiveRecommendationEngine and SpacedRepetitionAlgorithm:
         try:
             db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
             recommendation_engine = AdaptiveRecommendationEngine(db_path)
@@ -1342,7 +1342,7 @@ def login():
             max_age = 7 * 24 * 60 * 60 if remember_me else None  # 7天或session
             response.set_cookie(
                 'session_token',
-                result['session_token'],
+                result['session_token'],  # pyrefly: ignore  # 运行时必为 str
                 max_age=max_age,
                 httponly=True,
                 samesite='Lax'
@@ -1513,8 +1513,8 @@ def seed_confusable_pairs():
     ]
 
     for item in pairs_data:
-        w1 = Word(pinyin=item['word1'][0], definition=item['word1'][1])
-        w2 = Word(pinyin=item['word2'][0], definition=item['word2'][1])
+        w1 = Word(pinyin=item['word1'][0], definition=item['word1'][1])  # pyrefly: ignore
+        w2 = Word(pinyin=item['word2'][0], definition=item['word2'][1])  # pyrefly: ignore
         db.session.add_all([w1, w2])
         db.session.flush()  # 先拿到 word id 再建词对
         db.session.add(ConfusablePair(
@@ -1599,7 +1599,7 @@ def initialize_database():
                 try:
                     import sys
                     sys.path.insert(0, os.path.join(basedir, 'scripts'))
-                    import simple_test_data
+                    import simple_test_data  # pyrefly: ignore  # 运行时动态路径
                     simple_test_data.generate_simple_test_data()
                 except Exception as e:
                     print(f"⚠️  测试数据生成失败: {str(e)}")

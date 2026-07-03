@@ -44,7 +44,7 @@ def app(tmp_path_factory):
 
     # 认证表（user_session 等）由迁移脚本创建，不在 SQLAlchemy 模型里
     sys.path.insert(0, str(PROJECT_ROOT / 'scripts'))
-    from migrate_auth import migrate_auth_system
+    from migrate_auth import migrate_auth_system  # pyrefly: ignore  # 运行时动态路径
     assert migrate_auth_system(db_file)
 
     mod.init_recommendation_engine()

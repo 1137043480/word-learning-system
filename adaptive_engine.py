@@ -288,7 +288,7 @@ class AdaptiveRecommendationEngine:
                 'collocation': coll_avg or 0,
                 'sentence': sent_avg or 0
             }
-            preferred_module = max(module_scores, key=module_scores.get)
+            preferred_module = max(module_scores, key=lambda k: module_scores[k])
             
             return {
                 'type': 'experienced_user',
@@ -368,7 +368,7 @@ class AdaptiveRecommendationEngine:
                 'sentence': fill_rate
             }
             
-            weakest_module = min(rates, key=rates.get)
+            weakest_module = min(rates, key=lambda k: rates[k])
             
             # 如果最薄弱的准确率太低，推荐对应的复习模块
             if rates[weakest_module] < 0.7:
@@ -599,7 +599,7 @@ class AdaptiveRecommendationEngine:
             ))
             
             conn.commit()
-            return cursor.lastrowid
+            return cursor.lastrowid or 0
             
         finally:
             conn.close()

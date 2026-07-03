@@ -35,9 +35,10 @@ def get_current_user_from_request():
             if validation['valid']:
                 return validation['user_id'], True
     
-    # 方式2：URL参数 (向后兼容)
-    if 'user_id' in request.view_args:
-        return request.view_args['user_id'], False
+    # 方式2：URL参数 (向后兼容)。view_args 在无路由匹配时为 None
+    view_args = request.view_args or {}
+    if 'user_id' in view_args:
+        return view_args['user_id'], False
     
     # 方式3：Query参数
     user_id = request.args.get('user_id')
@@ -110,10 +111,11 @@ def check_data_ownership(target_user_id=None):
             
             # 确定要检查的目标用户ID
             check_user_id = target_user_id
+            view_args = request.view_args or {}
             if not check_user_id and 'user_id' in kwargs:
                 check_user_id = kwargs['user_id']
-            elif not check_user_id and 'user_id' in request.view_args:
-                check_user_id = request.view_args['user_id']
+            elif not check_user_id and 'user_id' in view_args:
+                check_user_id = view_args['user_id']
             
             # 如果没有指定目标用户，使用当前用户
             if not check_user_id:
