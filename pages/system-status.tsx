@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RefreshCw, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import { buildApiUrl, getApiBaseUrl } from "@/src/lib/apiClient";
+import { buildApiUrl } from "@/src/lib/apiClient";
 
 interface ServiceStatus {
   name: string;
@@ -23,10 +23,10 @@ interface ServiceStatus {
 
 const SystemStatus: React.FC = () => {
   const router = useRouter();
-  const apiBaseUrl = getApiBaseUrl();
+  // 用静态相对路径初始化，避免 getApiBaseUrl() 在 SSR 与浏览器返回不同值导致水合错误
   const [services, setServices] = useState<ServiceStatus[]>([
     { name: 'Next.js 前端服务', url: 'http://localhost:3000/', status: 'checking' },
-    { name: '第二阶段 API', url: `${apiBaseUrl}/api/stats`, status: 'checking' },
+    { name: '第二阶段 API', url: '/api/stats', status: 'checking' },
     { name: '第一阶段 API (5002)', url: 'http://localhost:5002/', status: 'checking' },
     { name: '原始 API (5001)', url: 'http://localhost:5001/', status: 'checking' },
   ]);

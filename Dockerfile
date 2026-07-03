@@ -13,14 +13,22 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY app_phase2.py .
+COPY adaptive_engine.py .
+COPY auth.py .
+COPY user_data_isolation.py .
+COPY models_extended.py .
+COPY confusable_api.py .
+COPY words_extended.db .
+COPY data/ ./data/
+COPY learning_materials/ ./learning_materials/
 
 # Expose Flask port
-EXPOSE 5001
+EXPOSE 5004
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5001/api/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5004/api/stats')" || exit 1
 
-# Run Flask application
-CMD ["python", "app_phase2.py"]
+# Run with gunicorn for production
+CMD ["gunicorn", "--bind", "0.0.0.0:5004", "--workers", "2", "--timeout", "120", "app_phase2:app"]

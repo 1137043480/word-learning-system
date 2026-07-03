@@ -1,6 +1,18 @@
 import type { ExerciseSetResponse, RecentSessionSummary, UserProfileSummary, WordResponse, WordSummary } from './types';
 
-const DEFAULT_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL ?? 'http://localhost:5004').replace(/\/$/, '');
+const getDefaultBase = () => {
+  const envBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.API_BASE_URL;
+  if (envBase !== undefined && envBase !== '') {
+    return envBase.replace(/\/$/, '');
+  }
+  // In browser: use relative paths (same domain, proxied by Nginx)
+  // On server (SSR): use direct backend URL
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+  return 'http://localhost:5004';
+};
+const DEFAULT_BASE = getDefaultBase();
 const STORAGE_KEY = 'learningSystem.apiBaseUrl';
 
 let runtimeOverride: string | null = null;
@@ -125,4 +137,34 @@ export const fetchRecentSessions = async (userId: string, params?: { limit?: num
     throw new Error(result.error || 'Failed to fetch recent sessions');
   }
   return result.data;
+};
+
+// 学习状态持久化（跨设备恢复）
+export interface LearningStateData {
+  wordId?: number | null;
+  word?: string | null;
+  module?: string | null;
+  vksLevel?: string | null;
+  lastUpdated?: string | null;
+}
+
+export const fetchLearningState = async (userId: string): Promise<LearningStateData> => {
+  const result = await fetchJson<{ success: boolean; data: LearningStateData; error?: string }>(
+    `/api/users/${userId}/learning-state`
+  );
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to fetch learning state');
+  }
+  return result.data;
+};
+
+export const saveLearningState = async (userId: string, state: Partial<LearningStateData>): Promise<void> => {
+  await fetchJson<{ success: boolean; error?: string }>(
+    `/api/users/${userId}/learning-state`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state)
+    }
+  );
 };

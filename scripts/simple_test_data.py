@@ -119,18 +119,16 @@ def generate_simple_test_data():
                 datetime.now(), datetime.now()
             ))
         
-        # 5. 生成学习事件（表结构与 models_extended.LearningEvent 一致）
+        # 5. 生成学习事件（表结构与 app_phase2.LearningEvent 一致）
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS learning_event (
                 id INTEGER PRIMARY KEY,
                 session_id VARCHAR(100) NOT NULL,
                 event_type VARCHAR(50) NOT NULL,
-                event_target VARCHAR(100),
+                target VARCHAR(100),
                 event_data TEXT,
-                timestamp DATETIME NOT NULL,
                 page_url VARCHAR(200),
-                is_active BOOLEAN DEFAULT 1,
-                focus_time_seconds FLOAT,
+                timestamp DATETIME NOT NULL,
                 created_at DATETIME
             )
         """)
@@ -140,16 +138,14 @@ def generate_simple_test_data():
                 'event_type': random.choice(['button_click', 'option_select', 'audio_play']),
                 'timestamp': datetime.now().isoformat()
             }
-            
+
             cursor.execute("""
                 INSERT OR REPLACE INTO learning_event
-                (session_id, event_type, event_target, event_data, timestamp,
-                 page_url, is_active, focus_time_seconds, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (session_id, event_type, target, event_data, page_url, timestamp, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
                 session_id, event_data['event_type'], 'target_element',
-                json.dumps(event_data), datetime.now(),
-                '/learning/test', True, random.uniform(1.0, 5.0), datetime.now()
+                json.dumps(event_data), '/learning/test', datetime.now(), datetime.now()
             ))
         
         conn.commit()

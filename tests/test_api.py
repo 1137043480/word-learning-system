@@ -29,25 +29,18 @@ def app(tmp_path_factory):
     db_file = str(tmp_path_factory.mktemp('api-db') / 'words_extended.db')
     os.environ['WORDS_DB_PATH'] = db_file
 
+    # 导入即触发 initialize_database()：建表 + 种子词汇/易混淆词 + 测试数据
     import app_phase2 as mod
 
     assert db_file in mod.app.config['SQLALCHEMY_DATABASE_URI'], \
         'app_phase2 在设置 WORDS_DB_PATH 之前已被导入，测试会污染真实数据库'
     mod.app.config['TESTING'] = True
 
-    with mod.app.app_context():
-        mod.db.create_all()
-        word = mod.Word(pinyin='fāshēng', definition='happen; occur')
-        mod.db.session.add(word)
-        mod.db.session.commit()
-        mod.seed_confusable_pairs()
-
     # 认证表（user_session 等）由迁移脚本创建，不在 SQLAlchemy 模型里
     sys.path.insert(0, str(PROJECT_ROOT / 'scripts'))
     from migrate_auth import migrate_auth_system  # pyrefly: ignore  # 运行时动态路径
     assert migrate_auth_system(db_file)
 
-    mod.init_recommendation_engine()
     yield mod.app
     del os.environ['WORDS_DB_PATH']
 

@@ -43,6 +43,13 @@ except ImportError:
     check_data_ownership = lambda: lambda f: f
     get_current_user_from_request = lambda: (None, False)
 
+# 导入易混淆词API模块
+try:
+    from confusable_api import register_confusable_apis
+except ImportError:
+    print("⚠️  易混淆词API模块未找到")
+    register_confusable_apis = None
+
 app = Flask(__name__)
 CORS(app, supports_credentials=True)  # pyrefly: ignore  # 支持credentials以便使用cookies
 
@@ -94,6 +101,11 @@ class UserProfile(db.Model):
     username = db.Column(db.String(100))
     language_level = db.Column(db.String(20))
     native_language = db.Column(db.String(50), default='English')
+    # 持久化学习状态（跨设备恢复）
+    current_word_id = db.Column(db.Integer)
+    current_word = db.Column(db.String(50))
+    current_module = db.Column(db.String(30))
+    current_vks_level = db.Column(db.String(5))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -205,6 +217,17 @@ class ConfusableExerciseRecord(db.Model):
     response_time = db.Column(db.Float)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class LearningEvent(db.Model):
+    __tablename__ = 'learning_event'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.String(100), nullable=False, index=True)
+    event_type = db.Column(db.String(50), nullable=False)
+    target = db.Column(db.String(100))
+    event_data = db.Column(db.Text)  # JSON string
+    page_url = db.Column(db.String(200))
+    timestamp = db.Column(db.DateTime, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 # 全局推荐引擎实例
 recommendation_engine = None
 spaced_repetition = None
@@ -249,6 +272,7 @@ def home():
             "POST /api/learning/session/start - 开始学习会话",
             "POST /api/learning/session/end - 结束学习会话",
             "POST /api/learning/exercise/record - 记录练习结果",
+            "POST /api/learning/events/batch - 批量记录学习事件",
             "GET  /api/adaptive/recommendation/<user_id> - 获取个性化推荐",
             "POST /api/adaptive/feedback - 记录推荐反馈",
             "GET  /api/review/user/<user_id>/due - 获取到期复习内容",
@@ -448,6 +472,59 @@ def record_exercise_result(current_user_id=None, **kwargs):
         return jsonify({
             'success': True,
             'message': 'Exercise recorded successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/learning/events/batch', methods=['POST'])
+def record_batch_events():
+    """批量记录学习事件（页面停留、点击、音频播放等）"""
+    try:
+        data = request.get_json()
+        session_id = data.get('sessionId')
+        events = data.get('events', [])
+        
+        if not session_id:
+            return jsonify({'success': False, 'error': 'sessionId is required'}), 400
+        
+        if not events:
+            return jsonify({'success': True, 'message': 'No events to record', 'count': 0})
+        
+        recorded_count = 0
+        for event in events:
+            try:
+                timestamp_str = event.get('timestamp', '')
+                if isinstance(timestamp_str, str) and timestamp_str:
+                    try:
+                        event_time = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                    except (ValueError, TypeError):
+                        event_time = datetime.utcnow()
+                else:
+                    event_time = datetime.utcnow()
+                
+                learning_event = LearningEvent(
+                    session_id=session_id,
+                    event_type=event.get('type', 'unknown'),
+                    target=event.get('target'),
+                    event_data=json.dumps(event.get('data')) if event.get('data') else None,
+                    page_url=event.get('pageUrl'),
+                    timestamp=event_time
+                )
+                db.session.add(learning_event)
+                recorded_count += 1
+            except Exception as e:
+                print(f"⚠️  跳过无效事件: {str(e)}")
+                continue
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Recorded {recorded_count} events',
+            'count': recorded_count
         })
         
     except Exception as e:
@@ -762,6 +839,70 @@ def get_recent_sessions(user_id, current_user_id=None, **kwargs):
 
         return jsonify({'success': True, 'data': data})
     except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+# ================================================
+# 学习状态持久化API（跨设备恢复）
+# ================================================
+
+@app.route('/api/users/<user_id>/learning-state', methods=['GET'])
+def get_learning_state(user_id):
+    """获取用户当前学习状态（用于跨设备恢复）"""
+    try:
+        profile = UserProfile.query.filter_by(user_id=user_id).first()
+        if not profile:
+            return jsonify({
+                'success': True,
+                'data': {'wordId': None, 'word': None, 'module': None, 'vksLevel': None, 'lastUpdated': None}
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'wordId': profile.current_word_id,
+                'word': profile.current_word,
+                'module': profile.current_module,
+                'vksLevel': profile.current_vks_level,
+                'lastUpdated': profile.updated_at.isoformat() if profile.updated_at else None
+            }
+        })
+    except Exception as exc:
+        return jsonify({'success': False, 'error': str(exc)}), 500
+
+
+@app.route('/api/users/<user_id>/learning-state', methods=['PUT'])
+def save_learning_state(user_id):
+    """保存用户当前学习状态（跨设备持久化）"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        profile = UserProfile.query.filter_by(user_id=user_id).first()
+        if not profile:
+            # 自动创建用户 profile
+            profile = UserProfile(user_id=user_id)
+            db.session.add(profile)
+        
+        if 'wordId' in data:
+            profile.current_word_id = data['wordId']
+        if 'word' in data:
+            profile.current_word = data['word']
+        if 'module' in data:
+            profile.current_module = data['module']
+        if 'vksLevel' in data:
+            profile.current_vks_level = data['vksLevel']
+        
+        profile.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Learning state saved successfully'
+        })
+    except Exception as exc:
+        db.session.rollback()
         return jsonify({'success': False, 'error': str(exc)}), 500
 
 
@@ -1449,16 +1590,6 @@ def validate_session():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # ================================================
-# 易混淆词辨析API
-# ================================================
-
-try:
-    from confusable_api import register_confusable_apis
-    register_confusable_apis(app, db, require_authentication, check_data_ownership)
-except ImportError:
-    print("⚠️  易混淆词API模块未找到，相关功能不可用")
-
-# ================================================
 # 应用初始化
 # ================================================
 
@@ -1529,11 +1660,31 @@ def seed_confusable_pairs():
     db.session.commit()
     print(f"✅ 易混淆词数据添加完成（{len(pairs_data)} 组）")
 
+def ensure_user_profile_columns():
+    """为旧数据库补齐 user_profile 新增列（create_all 不会修改已存在的表）"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(user_profile)")
+    existing = {row[1] for row in cursor.fetchall()}
+    new_columns = {
+        'current_word_id': 'INTEGER',
+        'current_word': 'VARCHAR(50)',
+        'current_module': 'VARCHAR(30)',
+        'current_vks_level': 'VARCHAR(5)',
+    }
+    for column, ddl in new_columns.items():
+        if existing and column not in existing:
+            cursor.execute(f"ALTER TABLE user_profile ADD COLUMN {column} {ddl}")
+            print(f"   ➕ 已为 user_profile 补齐 {column} 列")
+    conn.commit()
+    conn.close()
+
 def initialize_database():
     """初始化数据库和测试数据"""
     try:
         with app.app_context():
             db.create_all()
+            ensure_user_profile_columns()
             print("✅ 数据库表创建成功")
             
             # 检查是否需要添加初始数据
@@ -1603,12 +1754,29 @@ def initialize_database():
                     simple_test_data.generate_simple_test_data()
                 except Exception as e:
                     print(f"⚠️  测试数据生成失败: {str(e)}")
+            
+            # 注册易混淆词API
+            if register_confusable_apis:
+                try:
+                    register_confusable_apis(app, db, require_authentication, check_data_ownership)
+                except Exception as e:
+                    print(f"⚠️  易混淆词API注册失败: {str(e)}")
         
         # 初始化推荐引擎
         init_recommendation_engine()
         
     except Exception as e:
         print(f"❌ 数据库初始化失败: {str(e)}")
+
+# 在module级别注册易混淆词API（gunicorn不走__main__）
+if register_confusable_apis:
+    try:
+        register_confusable_apis(app, db, require_authentication, check_data_ownership)
+    except Exception as e:
+        print(f"⚠️  易混淆词API模块级注册失败: {str(e)}")
+
+# gunicorn启动时自动初始化
+initialize_database()
 
 if __name__ == '__main__':
     print("🚀 启动第二阶段自适应学习API服务...")

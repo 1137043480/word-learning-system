@@ -2,8 +2,13 @@
 
 [![中文文档](https://img.shields.io/badge/文档-中文版-blue)](./README_zh.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-learnchinese.kzwbelieve.top-brightgreen)](http://learnchinese.kzwbelieve.top)
+[![GitHub stars](https://img.shields.io/github/stars/1137043480/word-learning-system?style=social)](https://github.com/1137043480/word-learning-system)
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-5A0FC8?logo=pwa)](http://learnchinese.kzwbelieve.top)
 
-**Version**: 2.0.0 · **Status**: Phase 2 Complete · **Last Updated**: September 2025
+**Version**: 2.2.0 · **Status**: Production · **Last Updated**: March 2026
+
+> 🌐 **[Try it now → learnchinese.kzwbelieve.top](http://learnchinese.kzwbelieve.top)** — No installation required! Works on mobile & desktop.
 
 An intelligent, adaptive vocabulary learning system for intermediate-level Chinese as a Foreign Language (CFL) learners. Built as part of a master's thesis at **Peking University** — *"Research and Design of an Adaptive Intermediate Chinese Vocabulary Learning System"* — this project implements a full-stack learning platform with AI-driven personalized learning paths, spaced repetition, and comprehensive learning analytics.
 
@@ -16,55 +21,63 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 - 📊 **Learning Analytics Dashboard** — Real-time data visualization with mastery heatmaps, trend analysis, and predictive insights
 - 📝 **VKS-based Assessment** — Vocabulary Knowledge Scale testing to determine optimal learning entry points
 - ⏱️ **Millisecond-precision Tracking** — Fine-grained learning behavior recording for research-grade data collection
+- 🔊 **TTS Audio Pronunciation** — Built-in text-to-speech for characters, words, collocations, and example sentences
 - 🔗 **Multi-module Learning Chain** — Character → Vocabulary → Collocation → Sentence progressive learning flow
 - 📖 **SLA-informed Curriculum Design** — Learning materials grounded in Second Language Acquisition theory: word frequency-based difficulty grading via BCC corpus (billions of tokens), NLP-powered collocation extraction using dependency parsing and mutual information, automated sentence complexity scoring, and interlanguage corpus-based confused word identification
+- 📱 **PWA Support** — Install as a native-like app on iOS, Android, and desktop; works offline with Service Worker caching
+- ☁️ **Cross-device Progress Sync** — Learning state persisted to backend; switch devices without losing progress
 
 ---
 
 ## 📸 Screenshots
 
+<details>
+<summary><b>Click to view all 9 screenshots 👇</b></summary>
+
 <table>
   <tr>
     <td align="center"><b>Home Page</b></td>
+    <td align="center"><b>VKS Assessment</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/01-homepage.png?v=3" width="400" alt="Home Page - Mobile-first welcome interface with navigation to all learning modules"></td>
+    <td><img src="docs/screenshots/02-vks-entrance.png?v=3" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Character Learning</b></td>
+    <td align="center"><b>Word Learning</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/03-character-learning.png?v=3" width="400" alt="Character Learning - Chinese character breakdown with pinyin, stroke order, and definitions"></td>
+    <td><img src="docs/screenshots/04-word-learning.png?v=3" width="400" alt="Word Learning - Deep dive into word meanings, collocations, and usage"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Collocation Learning</b></td>
+    <td align="center"><b>Sentence Learning</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/04b-collocation-learning.png?v=3" width="400" alt="Collocation Learning - Mastering native-like phrasing combinations"></td>
+    <td><img src="docs/screenshots/04c-sentence-learning.png?v=3" width="400" alt="Sentence Learning - Contextual reading and listening practice"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Vocabulary Exercise</b></td>
     <td align="center"><b>Learning Dashboard</b></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/home-page.png?v=2" width="400" alt="Home Page - Mobile-first welcome interface with navigation to all learning modules"></td>
-    <td><img src="docs/screenshots/learning-dashboard.png?v=2" width="400" alt="Learning Dashboard - AI-powered smart recommendations with confidence scoring"></td>
+    <td><img src="docs/screenshots/07-exercise.png?v=3" width="400" alt="Vocabulary Exercise - Interactive quizzes with immediate feedback"></td>
+    <td><img src="docs/screenshots/05-dashboard.png?v=3" width="400" alt="Learning Dashboard - AI-powered smart recommendations with confidence scoring"></td>
   </tr>
   <tr>
-    <td align="center"><b>VKS Assessment</b></td>
-    <td align="center"><b>Character Learning</b></td>
+    <td align="center"><b>Today's Review</b></td>
+    <td></td>
   </tr>
   <tr>
-    <td><img src="docs/screenshots/vks-assessment.png?v=2" width="400" alt="VKS Assessment - Vocabulary Knowledge Scale test to determine learning entry point"></td>
-    <td><img src="docs/screenshots/character-learning.png?v=2" width="400" alt="Character Learning - Chinese character breakdown with pinyin and definitions"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Vocabulary Learning</b></td>
-    <td align="center"><b>Collocation Learning</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/word-learning.png?v=2" width="400" alt="Vocabulary Learning - Deep dive into word meanings and usage"></td>
-    <td><img src="docs/screenshots/collocation-learning.png?v=2" width="400" alt="Collocation Learning - Mastering native-like phrasing combinations"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Sentence Learning</b></td>
-    <td align="center"><b>Vocabulary Exercise</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/sentence-learning.png?v=2" width="400" alt="Sentence Learning - Contextual reading and listening practice"></td>
-    <td><img src="docs/screenshots/vocabulary-exercise.png?v=2" width="400" alt="Vocabulary Exercise - Interactive quizzes with immediate feedback"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Spaced Repetition Review</b></td>
-    <td align="center"><b>Learning Statistics</b></td>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/today-review.png?v=2" width="400" alt="Spaced Repetition Review - Daily personalized review tasks"></td>
-    <td><img src="docs/screenshots/learning-stats.png?v=2" width="400" alt="Learning Statistics - Tracking progress and algorithm states"></td>
+    <td><img src="docs/screenshots/06-today-review.png?v=3" width="400" alt="Spaced Repetition Review - Daily personalized review tasks"></td>
+    <td></td>
   </tr>
 </table>
+
+</details>
 
 ## 🛠️ Tech Stack
 
@@ -72,9 +85,11 @@ An intelligent, adaptive vocabulary learning system for intermediate-level Chine
 |-------|-----------|
 | **Frontend** | Next.js 14, React, TypeScript, Tailwind CSS, shadcn/ui |
 | **Backend** | Flask, SQLAlchemy, SQLite |
+| **PWA** | Service Worker, Web App Manifest, offline caching |
 | **Algorithm** | Modified SuperMemo-2, Multi-factor recommendation engine |
 | **ML Models** | AdaBoost (Multinomial NB), Gaussian NB, XGBoost with voting ensemble |
 | **NLP Pipeline** | BCC corpus frequency analysis, dependency parsing, mutual information scoring |
+| **Deployment** | Nginx, PM2, VPS with HTTPS |
 
 ---
 
@@ -93,7 +108,17 @@ This system is built on rigorous academic research at **Peking University**, com
 
 ---
 
-## 🚀 Quick Start
+## 🌐 Live Demo
+
+**No installation needed!** Visit the live deployment directly:
+
+👉 **[learnchinese.kzwbelieve.top](http://learnchinese.kzwbelieve.top)**
+
+The system is deployed on a VPS with Nginx reverse proxy, PM2 process management, and full backend/frontend services running 24/7.
+
+---
+
+## 🚀 Quick Start (Local Development)
 
 ### Prerequisites
 - Python 3.11+ (conda recommended)
@@ -107,7 +132,7 @@ git clone https://github.com/1137043480/word-learning-system.git
 cd word-learning-system
 
 # Install backend dependencies
-pip install flask flask-cors flask-sqlalchemy
+pip install -r requirements.txt
 
 # Install frontend dependencies
 npm install
@@ -133,8 +158,15 @@ python app_phase2.py
 npm run dev
 ```
 
+#### Option 3: Docker Deployment
+```bash
+# Production deployment with Docker Compose
+docker-compose -f docker-compose.prod.yml up -d
+```
+
 ### Access
-Open your browser at: **http://localhost:3000**
+- **Local**: http://localhost:3000 (dev) or http://localhost:3002 (Docker)
+- **Live**: http://learnchinese.kzwbelieve.top
 
 ---
 
@@ -191,6 +223,15 @@ GET /api/review/user/{user_id}/due
 
 # User list
 GET /api/users
+
+# Learning state persistence (cross-device sync)
+GET  /api/users/{user_id}/learning-state
+PUT  /api/users/{user_id}/learning-state
+
+# Learning session management
+POST /api/learning/session/start
+POST /api/learning/session/end
+POST /api/learning/events/batch
 ```
 
 ---

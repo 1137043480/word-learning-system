@@ -11,7 +11,7 @@ export const moduleRouteMap: Record<string, string> = {
   collocation: '/collocation-learning',
   sentence: '/sentence-learning',
   exercise: '/exercise',
-  dashboard: '/learning-dashboard-simple'
+  dashboard: '/learning-dashboard'
 };
 
 export const moduleLabelMap: Record<string, string> = {
