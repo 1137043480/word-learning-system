@@ -22,7 +22,7 @@ interface ApiTestResult {
   error?: string;
 }
 
-const Phase2Demo: React.FC = () => {
+const PhaseDemo: React.FC = () => {
   const router = useRouter();
   const [testResults, setTestResults] = useState<ApiTestResult[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -433,4 +433,4 @@ const Phase2Demo: React.FC = () => {
   );
 };
 
-export default Phase2Demo;
+export default PhaseDemo;

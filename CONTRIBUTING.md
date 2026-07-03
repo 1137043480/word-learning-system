@@ -23,7 +23,7 @@ Thank you for your interest in contributing! This project welcomes contributions
 ```bash
 # Backend
 pip install flask flask-cors flask-sqlalchemy
-python app_phase2.py
+python app_phase.py
 
 # Frontend
 npm install

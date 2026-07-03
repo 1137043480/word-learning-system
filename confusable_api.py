@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 易混淆词辨析 API扩展
-添加到 app_phase2.py 中
+添加到 app_phase.py 中
 """
 
 from flask import jsonify, request

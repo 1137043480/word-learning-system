@@ -152,7 +152,7 @@ npm run dev
 #### Option 2: Manual Start
 ```bash
 # Start Phase 2 API server (port 5004)
-python app_phase2.py
+python app_phase.py
 
 # Start frontend dev server (port 3000)
 npm run dev
@@ -175,7 +175,7 @@ docker-compose -f docker-compose.prod.yml up -d
 ### Recommended Experience Path
 
 1. **System Status** → `/system-status` — Check service health and architecture overview
-2. **Phase 2 Demo** → `/phase2-demo` — Interactive demo of the adaptive recommendation engine
+2. **Phase 2 Demo** → `/phase-demo` — Interactive demo of the adaptive recommendation engine
 3. **Learning Dashboard** → `/learning-dashboard` — Full learning analytics and visualization
 4. **Start Learning** → `/word-learning-entrance` — VKS-guided personalized learning experience
 
@@ -191,7 +191,7 @@ docker-compose -f docker-compose.prod.yml up -d
 | Sentence Learning | `/sentence-learning` | Contextual sentence practice |
 | Exercises | `/exercise` | Three exercise types |
 | Learning Dashboard | `/learning-dashboard` | Analytics and insights ⭐ |
-| Phase 2 Demo | `/phase2-demo` | Feature demonstration ⭐ |
+| Phase 2 Demo | `/phase-demo` | Feature demonstration ⭐ |
 | System Status | `/system-status` | Health check |
 
 ---
@@ -280,14 +280,14 @@ The system uses a multi-layer recommendation strategy:
 │   ├── index.tsx            # Home page
 │   ├── word-learning-entrance.tsx  # VKS assessment
 │   ├── learning-dashboard.tsx      # Analytics dashboard ⭐
-│   ├── phase2-demo.tsx             # Feature demo ⭐
+│   ├── phase-demo.tsx             # Feature demo ⭐
 │   └── exercise.tsx                # Practice exercises
 ├── components/ui/            # UI component library (shadcn)
 ├── src/
 │   ├── context/             # React Context providers
 │   ├── hooks/               # Custom React hooks
 │   └── lib/                 # Utility functions
-├── app_phase2.py            # Phase 2 API server ⭐
+├── app_phase.py            # Phase 2 API server ⭐
 ├── adaptive_engine.py       # Adaptive recommendation engine
 ├── models_extended.py       # Database models
 ├── start_system.sh          # One-click startup script

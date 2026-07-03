@@ -12,7 +12,7 @@ python simple_test_data.py
 
 # 启动第二阶段API服务
 echo "🔧 启动第二阶段API服务 (端口5004)..."
-python app_phase2.py &
+python app_phase.py &
 API_PID=$!
 
 sleep 3
@@ -34,7 +34,7 @@ fi
 echo ""
 echo "🌐 访问地址:"
 echo "   主页:           http://localhost:3000/"
-echo "   第二阶段演示:    http://localhost:3000/phase2-demo"
+echo "   第二阶段演示:    http://localhost:3000/phase-demo"
 echo "   学习Dashboard:  http://localhost:3000/learning-dashboard"
 echo "   时间追踪演示:    http://localhost:3000/time-tracking-demo"
 echo ""
@@ -42,7 +42,7 @@ echo "🔧 API测试:"
 echo "   curl http://localhost:5004/api/stats"
 echo "   curl http://localhost:5004/api/adaptive/recommendation/test_user_001"
 echo ""
-echo "⚠️  如果API服务有问题，请手动运行: python app_phase2.py"
+echo "⚠️  如果API服务有问题，请手动运行: python app_phase.py"
 echo "⚠️  如果前端服务未运行，请执行: npm run dev"
 
 # 保持脚本运行

@@ -192,7 +192,7 @@ const LearningStats = () => {
             </Button>
             <Button 
                 variant="outline" 
-                onClick={() => router.push('/phase2-demo')}
+                onClick={() => router.push('/phase-demo')}
                 className="flex-1 bg-white/60 border-white/80 hover:bg-white text-indigo-600 rounded-xl shadow-sm text-xs font-semibold h-10"
             >
               Demo

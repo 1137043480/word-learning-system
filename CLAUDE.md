@@ -12,7 +12,7 @@
 | 服务 | PM2 名称 | 端口 | 启动命令 | 说明 |
 |------|----------|------|----------|------|
 | 前端 | `learn-frontend` | 3002 (内部) | `npm start -- -p 3002` | Next.js 生产模式 |
-| 后端 | `learn-backend` | 5004 | `python3 app_phase2.py` | Flask API 服务 |
+| 后端 | `learn-backend` | 5004 | `python3 app_phase.py` | Flask API 服务 |
 
 ### 常用操作
 ```bash
@@ -71,7 +71,7 @@ word learning system/
 │   └── lib/                        # 工具库 (apiClient.ts)
 ├── hooks/                          # 追踪 hooks (useTimeTracking)
 ├── components/                     # UI 组件 (AudioPlayer, ReviewReminder 等)
-├── app_phase2.py                   # Flask 后端主入口
+├── app_phase.py                   # Flask 后端主入口
 ├── package.json                    # Node.js 依赖
 └── CLAUDE.md                       # 本文件
 ```
@@ -85,7 +85,7 @@ word learning system/
 4. **不要**运行 `npm run dev`，生产环境使用 `npm start`
 
 ### 后端修改流程
-1. 编辑 `app_phase2.py` 或相关 Python 文件
+1. 编辑 `app_phase.py` 或相关 Python 文件
 2. 运行 `pm2 restart learn-backend`
 
 ### UI/UX 设计约定
@@ -97,7 +97,7 @@ word learning system/
 - **不要**创建模拟手机框（device mockup），页面本身就是全屏的
 
 ### 不要做的事情
-- ❌ 不要手动运行 `python3 app_phase2.py` 或 `node` 启动服务
+- ❌ 不要手动运行 `python3 app_phase.py` 或 `node` 启动服务
 - ❌ 不要修改 `/etc/nginx/` 配置（除非明确被要求）
 - ❌ 不要尝试"修复"自适应引擎警告
 - ❌ 不要在 3001 端口寻找服务或尝试启动服务

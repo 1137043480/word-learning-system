@@ -15,7 +15,7 @@ class AuthManager:
     """用户认证管理器"""
 
     def __init__(self, db_path=None):
-        # WORDS_DB_PATH 环境变量可覆盖数据库路径，与 app_phase2 保持一致
+        # WORDS_DB_PATH 环境变量可覆盖数据库路径，与 app_phase 保持一致
         self.db_path = db_path or os.environ.get('WORDS_DB_PATH', 'words_extended.db')
         self.session_lifetime = timedelta(days=7)  # Session有效期7天
     

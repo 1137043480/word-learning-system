@@ -7,7 +7,7 @@
  * 学习链路的前后导航按钮，验证路由跳转正确。
  *
  * 前置条件（两个服务都在运行）：
- *   python3 app_phase2.py     # 后端 :5004
+ *   python3 app_phase.py     # 后端 :5004
  *   npm run build && npm start  # 前端 :3000
  *
  * 运行: npm run test:e2e
@@ -24,7 +24,7 @@ const CHROME =
 const ROUTES = [
   '/', '/c', '/character-learning', '/collocation-learning', '/confusable-words',
   '/example-page', '/exercise', '/learning-dashboard',
-  '/learning-stats', '/login', '/phase2-demo', '/register', '/sentence-learning',
+  '/learning-stats', '/login', '/phase-demo', '/register', '/sentence-learning',
   '/system-status', '/time-tracking-demo', '/today-review', '/word-learning',
   '/word-learning-entrance',
 ];
@@ -190,7 +190,7 @@ async function testNavigation(browser) {
 (async () => {
   if (!(await checkServerUp())) {
     console.error(`✗ 前端服务不可用: ${BASE}`);
-    console.error('  请先启动: python3 app_phase2.py 和 npm run build && npm start');
+    console.error('  请先启动: python3 app_phase.py 和 npm run build && npm start');
     process.exit(2);
   }
 

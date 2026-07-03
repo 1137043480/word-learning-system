@@ -101,7 +101,7 @@ npm run dev
 #### 方法二：分别启动
 ```bash
 # 启动第二阶段API服务（端口5004）
-python app_phase2.py
+python app_phase.py
 
 # 启动前端服务（端口3000）
 npm run dev
@@ -120,7 +120,7 @@ npm run dev
    - 检查所有服务是否正常运行
    - 了解系统架构和功能概览
 
-2. **第二阶段功能演示** → http://localhost:3000/phase2-demo
+2. **第二阶段功能演示** → http://localhost:3000/phase-demo
    - 查看自适应推荐引擎演示
    - 测试API功能
    - 了解技术特性
@@ -147,7 +147,7 @@ npm run dev
 | 例句学习 | `/sentence-learning` | 例句用法学习 |
 | 练习页面 | `/exercise` | 三种题型练习 |
 | 学习Dashboard | `/learning-dashboard` | 学习数据分析 ⭐ |
-| 第二阶段演示 | `/phase2-demo` | 功能演示页面 ⭐ |
+| 第二阶段演示 | `/phase-demo` | 功能演示页面 ⭐ |
 | 系统状态 | `/system-status` | 系统健康检查 |
 
 ---
@@ -211,7 +211,7 @@ curl http://localhost:5004/api/users
 │   ├── index.tsx                  # 首页
 │   ├── word-learning-entrance.tsx # VKS测试入口
 │   ├── learning-dashboard.tsx     # 学习分析Dashboard ⭐
-│   ├── phase2-demo.tsx           # 第二阶段功能演示 ⭐
+│   ├── phase-demo.tsx           # 第二阶段功能演示 ⭐
 │   └── exercise.tsx              # 练习页面
 ├── components/ui/                 # UI组件库（shadcn）
 ├── src/
@@ -220,7 +220,7 @@ curl http://localhost:5004/api/users
 │   └── lib/                      # 工具函数
 
 📂 后端文件
-├── app_phase2.py                  # 第二阶段API服务 ⭐
+├── app_phase.py                  # 第二阶段API服务 ⭐
 ├── adaptive_engine.py             # 自适应推荐引擎
 ├── simple_test_data.py           # 测试数据生成器
 ├── generate_test_data.py         # 完整测试数据生成器

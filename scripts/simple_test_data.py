@@ -119,7 +119,7 @@ def generate_simple_test_data():
                 datetime.now(), datetime.now()
             ))
         
-        # 5. 生成学习事件（表结构与 app_phase2.LearningEvent 一致）
+        # 5. 生成学习事件（表结构与 app_phase.LearningEvent 一致）
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS learning_event (
                 id INTEGER PRIMARY KEY,

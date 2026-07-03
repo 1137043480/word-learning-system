@@ -31,7 +31,7 @@ python3 -m pytest tests/test_api.py -v
 
 ```bash
 # 1. 启动后端
-python3 app_phase2.py
+python3 app_phase.py
 
 # 2. 构建并启动前端（另一个终端）
 npm run build && npm start

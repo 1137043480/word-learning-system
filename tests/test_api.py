@@ -21,7 +21,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 @pytest.fixture(scope='session')
 def app(tmp_path_factory):
     """
-    把数据库指向临时文件后再导入 app_phase2。
+    把数据库指向临时文件后再导入 app_phase。
 
     WORDS_DB_PATH 必须在导入前设置——SQLAlchemy 在模块导入时
     就绑定了数据库 URI，事后改配置不会生效。
@@ -30,10 +30,10 @@ def app(tmp_path_factory):
     os.environ['WORDS_DB_PATH'] = db_file
 
     # 导入即触发 initialize_database()：建表 + 种子词汇/易混淆词 + 测试数据
-    import app_phase2 as mod
+    import app_phase as mod
 
     assert db_file in mod.app.config['SQLALCHEMY_DATABASE_URI'], \
-        'app_phase2 在设置 WORDS_DB_PATH 之前已被导入，测试会污染真实数据库'
+        'app_phase 在设置 WORDS_DB_PATH 之前已被导入，测试会污染真实数据库'
     mod.app.config['TESTING'] = True
 
     # 认证表（user_session 等）由迁移脚本创建，不在 SQLAlchemy 模型里

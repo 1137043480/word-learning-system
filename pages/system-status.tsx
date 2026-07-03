@@ -127,7 +127,7 @@ const SystemStatus: React.FC = () => {
     {
       title: '🎯 第二阶段功能演示',
       description: '查看自适应推荐、学习分析等核心功能',
-      path: '/phase2-demo',
+      path: '/phase-demo',
       requiresApi: true,
     },
     {
@@ -173,7 +173,7 @@ const SystemStatus: React.FC = () => {
     },
   ];
 
-  const phase2ApiOnline = services.find(s => s.name.includes('第二阶段'))?.status === 'online';
+  const phaseApiOnline = services.find(s => s.name.includes('第二阶段'))?.status === 'online';
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -230,14 +230,14 @@ const SystemStatus: React.FC = () => {
             </div>
             
             {/* 启动指引 */}
-            {!phase2ApiOnline && (
+            {!phaseApiOnline && (
               <Alert className="mt-4">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   第二阶段API服务未运行。请在终端执行以下命令启动：
                   <br />
                   <code className="bg-gray-100 px-2 py-1 rounded mt-2 inline-block">
-                    python app_phase2.py
+                    python app_phase.py
                   </code>
                   <br />
                   或者运行启动脚本：
@@ -262,15 +262,15 @@ const SystemStatus: React.FC = () => {
                 <div 
                   key={index} 
                   className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                    feature.requiresApi && !phase2ApiOnline 
+                    feature.requiresApi && !phaseApiOnline 
                       ? 'bg-gray-100 opacity-60' 
                       : 'bg-white hover:bg-gray-50'
                   }`}
-                  onClick={() => feature.requiresApi && !phase2ApiOnline ? null : navigateToFeature(feature.path)}
+                  onClick={() => feature.requiresApi && !phaseApiOnline ? null : navigateToFeature(feature.path)}
                 >
                   <h3 className="font-medium mb-2">{feature.title}</h3>
                   <p className="text-sm text-gray-600">{feature.description}</p>
-                  {feature.requiresApi && !phase2ApiOnline && (
+                  {feature.requiresApi && !phaseApiOnline && (
                     <p className="text-sm text-red-500 mt-2">需要第二阶段API服务</p>
                   )}
                 </div>
@@ -280,7 +280,7 @@ const SystemStatus: React.FC = () => {
         </Card>
 
         {/* API测试 */}
-        {phase2ApiOnline && (
+        {phaseApiOnline && (
           <Card>
             <CardHeader>
               <CardTitle>🔌 API接口测试</CardTitle>

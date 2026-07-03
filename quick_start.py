@@ -16,7 +16,7 @@ def start_api_service():
     # 启动服务
     try:
         process = subprocess.Popen(
-            ['python', 'app_phase2.py'],
+            ['python', 'app_phase.py'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
@@ -80,7 +80,7 @@ def main():
         print("\n🎉 系统启动完成！请访问:")
         print("   🏠 主页: http://localhost:3000/")
         print("   🖥️ 系统状态: http://localhost:3000/system-status")
-        print("   🚀 功能演示: http://localhost:3000/phase2-demo")
+        print("   🚀 功能演示: http://localhost:3000/phase-demo")
         print("   📊 学习分析: http://localhost:3000/learning-dashboard")
     else:
         print("\n⚠️  部分服务异常，请检查日志")
