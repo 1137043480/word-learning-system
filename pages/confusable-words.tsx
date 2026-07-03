@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Battery, Signal, Wifi, ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Search } from 'lucide-react';
 import AudioPlayer from '@/components/AudioPlayer';
 import { buildApiUrl } from '@/src/lib/apiClient';
 
@@ -42,7 +42,7 @@ export default function ConfusableWordsPage() {
       setLoading(true);
       const response = await fetch(buildApiUrl('/api/confusable/pairs?limit=20'));
       const data = await response.json();
-      
+
       if (data.success) {
         setPairs(data.pairs);
       } else {
@@ -75,7 +75,7 @@ export default function ConfusableWordsPage() {
   const renderBody = () => {
     if (loading) {
       return (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
           加载易混淆词数据中...
         </div>
       );
@@ -83,9 +83,12 @@ export default function ConfusableWordsPage() {
 
     if (error) {
       return (
-        <div className="flex-1 flex flex-col items-center justify-center text-red-500 text-center px-4">
-          <p>{error}</p>
-          <Button onClick={loadConfusablePairs} className="mt-4">
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+          <p className="text-sm text-red-500 mb-4">{error}</p>
+          <Button
+            onClick={loadConfusablePairs}
+            className="h-11 px-8 rounded-2xl border-none text-white font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300"
+          >
             重试
           </Button>
         </div>
@@ -94,30 +97,20 @@ export default function ConfusableWordsPage() {
 
     if (!currentPair) {
       return (
-        <div className="flex-1 flex items-center justify-center text-gray-500">
+        <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
           暂无易混淆词数据
         </div>
       );
     }
 
     return (
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* 标题 */}
-        <div className="bg-blue-50 p-3 rounded-lg">
-          <h2 className="text-lg font-bold text-center text-blue-800">
-            易混淆词辨析
-          </h2>
-          <p className="text-xs text-center text-blue-600 mt-1">
-            第 {currentIndex + 1} / {pairs.length} 组
-          </p>
-        </div>
-
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-5 space-y-4 pb-4">
         {/* 词对比较 */}
         <div className="grid grid-cols-2 gap-3">
           {/* 词1 */}
-          <div className="bg-white p-3 rounded-lg shadow border-2 border-purple-200">
+          <div className="glass-panel rounded-2xl p-4 border-l-4 border-l-indigo-400">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold text-purple-700">
+              <h3 className="text-xl font-bold text-indigo-700">
                 {currentPair.word1.pinyin}
               </h3>
               <AudioPlayer
@@ -126,15 +119,15 @@ export default function ConfusableWordsPage() {
                 buttonSize="sm"
               />
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 leading-relaxed">
               {currentPair.word1.definition}
             </p>
           </div>
 
           {/* 词2 */}
-          <div className="bg-white p-3 rounded-lg shadow border-2 border-green-200">
+          <div className="glass-panel rounded-2xl p-4 border-l-4 border-l-emerald-400">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold text-green-700">
+              <h3 className="text-xl font-bold text-emerald-700">
                 {currentPair.word2.pinyin}
               </h3>
               <AudioPlayer
@@ -143,58 +136,58 @@ export default function ConfusableWordsPage() {
                 buttonSize="sm"
               />
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 leading-relaxed">
               {currentPair.word2.definition}
             </p>
           </div>
         </div>
 
         {/* 混淆原因 */}
-        <div className="bg-yellow-50 p-3 rounded-lg shadow">
-          <h4 className="font-semibold text-yellow-800 mb-2">💡 为什么易混淆？</h4>
-          <p className="text-sm text-gray-700">{currentPair.reason}</p>
+        <div className="glass-panel rounded-2xl p-4 bg-amber-50/70">
+          <h4 className="text-sm font-semibold text-amber-800 mb-1.5">💡 为什么易混淆？</h4>
+          <p className="text-sm text-gray-700 leading-relaxed">{currentPair.reason}</p>
         </div>
 
         {/* 显示答案按钮 */}
         {!showAnswer && (
           <Button
             onClick={() => setShowAnswer(true)}
-            className="w-full bg-blue-500 hover:bg-blue-600"
+            className="w-full h-12 rounded-2xl border-none text-white font-bold tracking-wide text-sm bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300"
           >
-            🔍 查看辨析详解
+            <Search size={16} className="mr-2" /> 查看辨析详解
           </Button>
         )}
 
         {/* 详细辨析 */}
         {showAnswer && (
           <>
-            <div className="bg-white p-3 rounded-lg shadow">
-              <h4 className="font-semibold text-gray-800 mb-2">📖 详细区别</h4>
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans">
+            <div className="glass-panel rounded-2xl p-4">
+              <h4 className="text-sm font-semibold text-gray-800 mb-1.5">📖 详细区别</h4>
+              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                 {currentPair.difference}
               </pre>
             </div>
 
             {currentPair.examples && (
-              <div className="bg-green-50 p-3 rounded-lg shadow">
-                <h4 className="font-semibold text-green-800 mb-2">📝 例句对比</h4>
-                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans">
+              <div className="glass-panel rounded-2xl p-4 bg-emerald-50/70">
+                <h4 className="text-sm font-semibold text-emerald-800 mb-1.5">📝 例句对比</h4>
+                <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                   {currentPair.examples}
                 </pre>
               </div>
             )}
 
             {currentPair.tips && (
-              <div className="bg-purple-50 p-3 rounded-lg shadow">
-                <h4 className="font-semibold text-purple-800 mb-2">💡 记忆技巧</h4>
-                <p className="text-sm text-gray-700">{currentPair.tips}</p>
+              <div className="glass-panel rounded-2xl p-4 bg-indigo-50/70">
+                <h4 className="text-sm font-semibold text-indigo-800 mb-1.5">💡 记忆技巧</h4>
+                <p className="text-sm text-gray-700 leading-relaxed">{currentPair.tips}</p>
               </div>
             )}
           </>
         )}
 
         {/* 难度标识 */}
-        <div className="text-center text-xs text-gray-500">
+        <div className="text-center text-sm text-gray-400">
           难度等级: {'⭐'.repeat(currentPair.difficulty_level)}
         </div>
       </div>
@@ -202,72 +195,58 @@ export default function ConfusableWordsPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="w-[320px] h-[640px] bg-black rounded-[40px] overflow-hidden shadow-xl relative">
-        <div className="absolute inset-0 bg-black rounded-[40px]">
-          <div className="absolute top-0 left-0 right-0 bottom-0 bg-orange-100 rounded-[32px] m-2 overflow-hidden">
-            {/* Notch */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-[35%] h-6 bg-black rounded-b-2xl"></div>
-            
-            {/* Status Bar */}
-            <div className="relative z-10 flex justify-between items-center px-4 pt-1.5 text-black text-xs h-6">
-              <span>6:00 PM</span>
-              <div className="flex items-center space-x-1">
-                <Signal size={14} />
-                <Wifi size={14} />
-                <Battery size={14} />
-              </div>
+    <div className="flex items-center justify-center min-h-[100dvh] bg-gray-50">
+      <div className="w-full max-w-[430px] h-[100dvh] overflow-hidden modern-gradient-bg relative">
+        <div className="h-full pt-[calc(env(safe-area-inset-top)+1rem)] pb-[calc(env(safe-area-inset-bottom)+1rem)] flex flex-col relative z-20">
+          {/* Header */}
+          <div className="px-5 mb-4">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.history.back()}
+                className="h-9 px-3 rounded-xl text-gray-600 bg-white/50 hover:bg-white/80 border border-white/60"
+              >
+                <ArrowLeft size={16} className="mr-1" /> 返回
+              </Button>
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight">
+                易混淆词辨析
+              </h1>
+              <div className="w-[72px]" />
             </div>
-
-            {/* Content */}
-            <div className="h-full pt-6 pb-4 flex flex-col">
-              {/* Header */}
-              <div className="bg-orange-200 p-3">
-                <div className="flex justify-between items-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.history.back()}
-                  >
-                    <ArrowLeft size={20} /> 返回
-                  </Button>
-                  <h1 className="text-lg font-bold">易混淆词</h1>
-                  <div className="w-20"></div>
-                </div>
-              </div>
-
-              {/* Body */}
-              {renderBody()}
-
-              {/* Navigation */}
-              {!loading && !error && pairs.length > 0 && (
-                <div className="px-4 py-3 flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={handlePrevious}
-                    disabled={currentIndex === 0}
-                  >
-                    <ArrowLeft size={16} /> 上一组
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={handleNext}
-                    disabled={currentIndex === pairs.length - 1}
-                  >
-                    下一组 <ArrowRight size={16} />
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Home Indicator */}
-            <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-black rounded-full"></div>
+            {!loading && !error && pairs.length > 0 && (
+              <p className="text-sm text-center text-indigo-500 font-medium mt-2">
+                第 {currentIndex + 1} / {pairs.length} 组
+              </p>
+            )}
           </div>
+
+          {/* Body */}
+          {renderBody()}
+
+          {/* Navigation */}
+          {!loading && !error && pairs.length > 0 && (
+            <div className="px-5 pt-3 flex gap-3">
+              <Button
+                variant="ghost"
+                className="flex-1 h-11 rounded-2xl text-gray-700 bg-white/60 hover:bg-white/90 border border-white/60 disabled:opacity-40 transition-all"
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+              >
+                <ArrowLeft size={16} className="mr-1.5" /> 上一组
+              </Button>
+              <Button
+                variant="ghost"
+                className="flex-1 h-11 rounded-2xl text-gray-700 bg-white/60 hover:bg-white/90 border border-white/60 disabled:opacity-40 transition-all"
+                onClick={handleNext}
+                disabled={currentIndex === pairs.length - 1}
+              >
+                下一组 <ArrowRight size={16} className="ml-1.5" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

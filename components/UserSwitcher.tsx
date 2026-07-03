@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Settings, X } from 'lucide-react';
 import { useLearningContext } from '@/src/context/LearningContext';
 import { useLearningSession } from '@/src/context/LearningSessionContext';
 
@@ -113,14 +114,21 @@ const UserSwitcher: React.FC = () => {
   }, [availableUsers, recentContext]);
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 text-sm">
+    <div className="fixed bottom-24 right-3 z-50 text-sm">
+      {/* 研究/调试用学习控制台，触发器做成低调的圆形玻璃按钮，避免遮挡页面 CTA */}
       <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={() => setPanelOpen(!panelOpen)}>
-          {panelOpen ? '收起控制台' : '学习控制台'}
-        </Button>
+        <button
+          type="button"
+          onClick={() => setPanelOpen(!panelOpen)}
+          aria-label={panelOpen ? '收起学习控制台' : '打开学习控制台'}
+          title="学习控制台"
+          className="w-10 h-10 rounded-full bg-white/70 backdrop-blur-md border border-white/60 shadow-md flex items-center justify-center text-gray-500 hover:text-indigo-600 hover:bg-white/90 hover:shadow-lg transition-all duration-300"
+        >
+          {panelOpen ? <X size={18} /> : <Settings size={18} />}
+        </button>
       </div>
       {panelOpen && (
-        <div className="mt-2 w-72 rounded-lg border border-gray-200 bg-white shadow-lg p-4 space-y-4">
+        <div className="mt-2 w-72 rounded-2xl border border-white/60 bg-white/90 backdrop-blur-md shadow-xl p-4 space-y-4">
           <div>
             <p className="text-xs text-gray-500 mb-1">当前用户</p>
             <select

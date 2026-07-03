@@ -299,7 +299,7 @@ export default function Component() {
                         <RadioGroupItem 
                           value={option.value} 
                           id={option.value} 
-                          className={`mr-4 border-gray-300 w-5 h-5 ${selectedOption === option.value ? 'border-indigo-500 text-indigo-600' : ''}`} 
+                          className={`mr-4 shrink-0 border-gray-300 w-5 h-5 bg-white/70 ${selectedOption === option.value ? 'border-indigo-500 text-indigo-600' : ''}`}
                         />
                         <Label htmlFor={option.value} className={`text-base flex-1 cursor-pointer font-medium leading-relaxed ${
                           selectedOption === option.value ? 'text-indigo-900' : 'text-gray-700'

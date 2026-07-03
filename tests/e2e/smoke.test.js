@@ -23,7 +23,7 @@ const CHROME =
 
 const ROUTES = [
   '/', '/c', '/character-learning', '/collocation-learning', '/confusable-words',
-  '/example-page', '/exercise', '/learning-dashboard',
+  '/exercise', '/learning-dashboard',
   '/learning-stats', '/login', '/phase-demo', '/register', '/sentence-learning',
   '/system-status', '/time-tracking-demo', '/today-review', '/word-learning',
   '/word-learning-entrance',

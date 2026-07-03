@@ -584,7 +584,7 @@ const Exercise = () => {
                   <Button 
                     onClick={handleSubmit}
                     disabled={currentQuestion.type === 'fill_word' ? !fillInAnswer.trim() : !selectedOption}
-                    className="w-full h-[48px] rounded-xl border-none shadow-[0_4px_14px_0_rgba(91,176,24,0.39)] bg-[#5bb018] hover:bg-[#4d9711] disabled:bg-[#a6d189] disabled:shadow-none text-white font-bold tracking-widest text-[14px] transition-all duration-300"
+                    className="w-full h-[48px] rounded-xl border-none shadow-lg shadow-indigo-200 bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-indigo-300 disabled:from-gray-300 disabled:to-gray-300 disabled:shadow-none text-white font-bold tracking-widest text-[14px] transition-all duration-300"
                   >
                     CONTINUE
                   </Button>

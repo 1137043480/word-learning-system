@@ -196,11 +196,11 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-/* 按钮优化 */
+/* 按钮优化
+   注意：不要在这里给 button 设全局 padding/尺寸——
+   会把 Radix 单选框、图标按钮等无内边距组件撑变形，
+   尺寸交由各组件的 Tailwind 类控制 */
 button {
-  font-size: 16px;
-  padding: 12px 24px;
-  border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
