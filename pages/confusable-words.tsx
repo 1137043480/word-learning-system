@@ -9,13 +9,11 @@ interface ConfusablePair {
   id: number;
   word1: {
     id: number;
-    hanzi?: string | null;
     pinyin: string;
     definition: string;
   };
   word2: {
     id: number;
-    hanzi?: string | null;
     pinyin: string;
     definition: string;
   };
@@ -126,19 +124,16 @@ export default function ConfusableWordsPage() {
         <div className="grid grid-cols-2 gap-3">
           {/* 词1 */}
           <div className="glass-panel rounded-2xl p-4 border-l-4 border-l-indigo-400">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="text-xl font-bold text-indigo-700">
-                {currentPair.word1.hanzi ?? currentPair.word1.pinyin}
+                {currentPair.word1.pinyin}
               </h3>
               <AudioPlayer
-                text={currentPair.word1.hanzi ?? currentPair.word1.pinyin}
+                text={currentPair.word1.pinyin}
                 language="zh-CN"
                 buttonSize="sm"
               />
             </div>
-            {currentPair.word1.hanzi && (
-              <p className="text-sm text-indigo-400 font-medium mb-1.5">{currentPair.word1.pinyin}</p>
-            )}
             <p className="text-sm text-gray-600 leading-relaxed">
               {currentPair.word1.definition}
             </p>
@@ -146,19 +141,16 @@ export default function ConfusableWordsPage() {
 
           {/* 词2 */}
           <div className="glass-panel rounded-2xl p-4 border-l-4 border-l-emerald-400">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="text-xl font-bold text-emerald-700">
-                {currentPair.word2.hanzi ?? currentPair.word2.pinyin}
+                {currentPair.word2.pinyin}
               </h3>
               <AudioPlayer
-                text={currentPair.word2.hanzi ?? currentPair.word2.pinyin}
+                text={currentPair.word2.pinyin}
                 language="zh-CN"
                 buttonSize="sm"
               />
             </div>
-            {currentPair.word2.hanzi && (
-              <p className="text-sm text-emerald-500 font-medium mb-1.5">{currentPair.word2.pinyin}</p>
-            )}
             <p className="text-sm text-gray-600 leading-relaxed">
               {currentPair.word2.definition}
             </p>

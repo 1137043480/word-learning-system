@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "test": "python3 -m pytest tests -q",
-    "test:e2e": "node tests/e2e/smoke.test.js"
+    "test:e2e": "node tests/e2e/smoke.test.js",
+    "test:e2e:journey": "node tests/e2e/journey.test.js"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.15",

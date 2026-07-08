@@ -19,7 +19,7 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
             difficulty = request.args.get('difficulty', type=int)
             
             sql = """
-                SELECT
+                SELECT 
                     cp.id,
                     cp.word1_id,
                     cp.word2_id,
@@ -31,16 +31,12 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
                     cp.difference,
                     cp.examples,
                     cp.tips,
-                    cp.difficulty_level,
-                    (SELECT GROUP_CONCAT(character, '') FROM
-                        (SELECT character FROM character WHERE word_id = w1.id ORDER BY id)) as word1_hanzi,
-                    (SELECT GROUP_CONCAT(character, '') FROM
-                        (SELECT character FROM character WHERE word_id = w2.id ORDER BY id)) as word2_hanzi
+                    cp.difficulty_level
                 FROM confusable_pairs cp
                 JOIN word w1 ON cp.word1_id = w1.id
                 JOIN word w2 ON cp.word2_id = w2.id
             """
-
+            
             if difficulty:
                 sql += " WHERE cp.difficulty_level = :difficulty"
             
@@ -58,13 +54,11 @@ def register_confusable_apis(app, db, require_authentication, check_ownership):
                     'id': row[0],
                     'word1': {
                         'id': row[1],
-                        'hanzi': row[12],
                         'pinyin': row[3],
                         'definition': row[5]
                     },
                     'word2': {
                         'id': row[2],
-                        'hanzi': row[13],
                         'pinyin': row[4],
                         'definition': row[6]
                     },
