@@ -72,6 +72,29 @@ class Word(db.Model):
     pinyin = db.Column(db.String(80), nullable=False)
     definition = db.Column(db.String(200), nullable=False)
 
+class ExerciseItem(db.Model):
+    """论文 6 套答案课件里的人工命题。
+
+    由 scripts/parse_answer_decks.py 从 data/learning_materials/the answer*.json
+    解析入库。这些题的干扰项是作者按教学设计挑的（形近、义近、同音），
+    远优于从词库随机抽词拼凑出来的选项。
+    """
+    __tablename__ = 'exercise_item'
+    __table_args__ = (
+        db.UniqueConstraint('source_deck', 'source_slide', 'question_type', 'stem',
+                            name='uq_exercise_item_source'),
+    )
+    id = db.Column(db.Integer, primary_key=True)
+    word_id = db.Column(db.Integer, db.ForeignKey('word.id'), nullable=False, index=True)
+    question_type = db.Column(db.String(20), nullable=False)
+    stem = db.Column(db.Text, nullable=False)
+    options_json = db.Column(db.Text)          # JSON 数组；填词题为空
+    correct_answer = db.Column(db.String(100), nullable=False)
+    source_deck = db.Column(db.String(100), nullable=False)
+    source_slide = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class Example(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sentence = db.Column(db.String(200), nullable=False)
@@ -676,6 +699,38 @@ def get_word_exercises(word_id):
             'success': False,
             'error': 'No exercises available for this word'
         }), 404
+
+    # 优先使用论文课件里的人工命题：干扰项经过教学设计，
+    # 填词题挖的也是词中一个字。查不到才回落到下面的程序生成逻辑。
+    authored = (
+        ExerciseItem.query.filter_by(word_id=word.id)
+        .order_by(ExerciseItem.question_type.desc(), ExerciseItem.id.asc())
+        .all()
+    )
+    if authored:
+        type_order = {'definition': 0, 'collocation': 1, 'fill_word': 2}
+        authored.sort(key=lambda it: (type_order.get(it.question_type, 9), it.id))
+        questions = []
+        for index, item in enumerate(authored[:question_limit], start=1):
+            options = json.loads(item.options_json) if item.options_json else []
+            questions.append({
+                'id': f'authored-{item.id}',
+                'type': item.question_type,
+                'question': item.stem,
+                'options': options,
+                'correctAnswer': item.correct_answer,
+                'feedback': f"正确答案：{item.correct_answer}（选自{item.source_deck}）"
+            })
+        return jsonify({
+            'success': True,
+            'data': {
+                'wordId': word.id,
+                'word': base_hanzi,
+                'definition': word.definition,
+                'questions': questions,
+                'source': 'authored'
+            }
+        })
 
     def build_options():
         candidates = {base_hanzi}
