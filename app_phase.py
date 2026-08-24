@@ -13,6 +13,7 @@ import json
 import random
 import sqlite3
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 
 # 导入自适应引擎
 try:
@@ -151,6 +152,9 @@ class ExerciseRecord(db.Model):
 
 class UserProgress(db.Model):
     __tablename__ = 'user_progress'
+    __table_args__ = (
+        db.UniqueConstraint('user_id', 'word_id', name='uq_user_progress_user_word'),
+    )
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(50), nullable=False)
     word_id = db.Column(db.Integer, db.ForeignKey('word.id'), nullable=False)
@@ -222,11 +226,83 @@ class LearningEvent(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.String(100), nullable=False, index=True)
     event_type = db.Column(db.String(50), nullable=False)
-    target = db.Column(db.String(100))
+    # 真实列名是 event_target；属性名保留 target，与 models_extended.py 的表结构对齐
+    target = db.Column('event_target', db.String(100))
     event_data = db.Column(db.Text)  # JSON string
     page_url = db.Column(db.String(200))
     timestamp = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# 论文表 4.3 的按题型特征列：题型 -> (作答次数列, 答对次数列)
+QUESTION_TYPE_PROGRESS_COLUMNS = {
+    'definition': ('definition_attempts', 'definition_correct'),
+    'collocation': ('collocation_attempts', 'collocation_correct'),
+    'fill_word': ('fill_word_attempts', 'fill_word_correct'),
+}
+
+
+def get_or_create_user_progress(user_id, word_id):
+    """按 (user_id, word_id) 取进度行，不存在则创建。
+
+    此前生产代码从无一处 INSERT，adaptive_engine 的纯 UPDATE 永远影响 0 行，
+    导致论文表 4.3 的「学习次数 / 学习总时长 / 各题型正误」特征全部为空，
+    复习调度也因查不到行而恒退化成 new_learning。
+    """
+    progress = UserProgress.query.filter_by(user_id=user_id, word_id=word_id).first()
+    if progress is not None:
+        return progress
+
+    progress = UserProgress(
+        user_id=user_id,
+        word_id=word_id,
+        first_studied=datetime.utcnow(),
+    )
+    db.session.add(progress)
+    try:
+        db.session.flush()  # 让同一事务内后续的 UPDATE 能看到这一行
+    except IntegrityError:
+        # 并发请求下另一个事务已插入同一 (user_id, word_id)，回滚后取它的行
+        db.session.rollback()
+        progress = UserProgress.query.filter_by(user_id=user_id, word_id=word_id).first()
+    return progress
+
+
+def accumulate_exercise_into_progress(user_id, word_id, question_type, is_correct):
+    """把一次练习作答累加进 user_progress 的论文特征列。
+
+    连对/连错/掌握度也在这里维护：adaptive_engine 那条 UPDATE 是从
+    exercise_result 里取这两个值的，而调用方从来没传过，导致它们被恒写成 0，
+    SM-2 的连对加成与连错惩罚两条通路完全失效。
+    """
+    progress = get_or_create_user_progress(user_id, word_id)
+    if progress is None:
+        return None
+
+    progress.total_attempts = (progress.total_attempts or 0) + 1
+    if is_correct:
+        progress.correct_attempts = (progress.correct_attempts or 0) + 1
+
+    columns = QUESTION_TYPE_PROGRESS_COLUMNS.get(question_type)
+    if columns:
+        attempts_column, correct_column = columns
+        setattr(progress, attempts_column, (getattr(progress, attempts_column) or 0) + 1)
+        if is_correct:
+            setattr(progress, correct_column, (getattr(progress, correct_column) or 0) + 1)
+
+    if is_correct:
+        progress.consecutive_correct = (progress.consecutive_correct or 0) + 1
+        progress.consecutive_incorrect = 0
+    else:
+        progress.consecutive_incorrect = (progress.consecutive_incorrect or 0) + 1
+        progress.consecutive_correct = 0
+
+    # 掌握度取累计正确率，供 adaptive_engine 的 ease factor 与间隔调节使用
+    if progress.total_attempts:
+        progress.mastery_level = (progress.correct_attempts or 0) / progress.total_attempts
+
+    progress.last_studied = datetime.utcnow()
+    return progress
+
 
 # 全局推荐引擎实例
 recommendation_engine = None
@@ -462,18 +538,42 @@ def record_exercise_result(current_user_id=None, **kwargs):
         
         db.session.add(exercise)
         db.session.commit()
-        
-        # 如果有间隔重复算法，更新用户进度
-        if spaced_repetition:
+
+        # 累加论文表 4.3 的特征列。必须先于 spaced_repetition：后者是纯 UPDATE，
+        # 没有 user_progress 行时会静默影响 0 行，SM-2 因此从未真正生效过。
+        progress = None
+        if session:
             try:
-                # 获取session信息以确定user_id和word_id
-                session = LearningSession.query.filter_by(session_id=data['sessionId']).first()
-                if session:
+                progress = accumulate_exercise_into_progress(
+                    session.user_id,
+                    session.word_id,
+                    data['questionType'],
+                    bool(data['isCorrect']),
+                )
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"⚠️  用户进度累加失败: {str(e)}")
+
+        # 间隔重复调度：一次「复习」= 一节练习会话，不是一道题。
+        # 那条 UPDATE 写的是 review_count = review_count + 1，每题都调会让 review_count
+        # 随题数暴涨，间隔按 base_intervals 指数级抬升（实测 5 题就把新词排到两周后，
+        # 10 题排到一年后）。因此只在本会话的第一道题上调度一次。
+        if spaced_repetition and session:
+            try:
+                is_first_exercise_of_session = (
+                    ExerciseRecord.query.filter_by(session_id=data['sessionId']).count() == 1
+                )
+                if is_first_exercise_of_session:
                     exercise_result = {
                         'is_correct': data['isCorrect'],
                         'response_time': data.get('responseTimeSeconds', 5.0),
                         'confidence': data.get('confidenceLevel', 3),
-                        'hesitation_count': data.get('hesitationCount', 0)
+                        'hesitation_count': data.get('hesitationCount', 0),
+                        # 传真实的连对/连错，否则 adaptive_engine 会用默认值 0 覆盖掉，
+                        # 连对加成与连错惩罚永远不生效
+                        'consecutive_correct': (progress.consecutive_correct if progress else 0),
+                        'consecutive_incorrect': (progress.consecutive_incorrect if progress else 0),
                     }
                     spaced_repetition.update_user_progress_after_exercise(
                         session.user_id, session.word_id, exercise_result
@@ -567,10 +667,24 @@ def get_word_exercises(word_id):
 
     base_hanzi = get_word_hanzi(word)
 
+    # 没有 character 行的词，get_word_hanzi 会回退到 pinyin 列，正确答案就成了
+    # 'fāshēng'、'突然 tūrán' 这类畸形串。干扰项已被过滤成纯汉字，正确答案反而
+    # 变成唯一的「拼音格式」异类——学习者不用认词、只看格式就能选中。
+    # 这类词（id 2..15）本来也进不了推荐链路，直接不出题。
+    if Character.query.filter_by(word_id=word.id).count() == 0:
+        return jsonify({
+            'success': False,
+            'error': 'No exercises available for this word'
+        }), 404
+
     def build_options():
         candidates = {base_hanzi}
+        # 只从「有 character 行」的词里抽干扰项。无素材的词 get_word_hanzi 会回退到
+        # pinyin 列，渲染出 'fāshēng'、'突然 tūrán' 这类畸形选项，格式上一眼就不是
+        # 答案，会把四选一退化成二三选一，损害测量效度。
+        words_with_chars = db.session.query(Character.word_id).distinct()
         random_candidates = (
-            Word.query.filter(Word.id != word.id)
+            Word.query.filter(Word.id != word.id, Word.id.in_(words_with_chars))
             .order_by(db.func.random())
             .limit(desired_option_count * 2)
             .all()
@@ -586,7 +700,6 @@ def get_word_exercises(word_id):
         random.shuffle(option_list)
         return option_list[:desired_option_count]
 
-    options = build_options()
     options = build_options()
     questions = []
 
@@ -670,17 +783,37 @@ def get_word_exercises(word_id):
             .first()
         )
         if example:
-            sentence_placeholder = example.sentence.replace(base_hanzi, ' ( ) ')
-            if sentence_placeholder == example.sentence:
-                sentence_placeholder = example.sentence
-            questions.append({
-                'id': f'sentence-{word.id}-1',
-                'type': 'fill_word',
-                'question': sentence_placeholder,
-                'options': options,
-                'correctAnswer': base_hanzi,
-                'feedback': f"例句：{example.sentence}；翻译：{example.translation}"
-            })
+            # 论文题型规格：填词题挖掉词中的「一个字」而非整词（对照 word 1 的原型题
+            # '不愿意发 ( ) 的事情终于出现了。' -> 答案 '生'）。挖整词会把「单字填空」
+            # 退化成「整词书写」，与 §6.3 的填词题习得分析不符。
+            word_chars = (
+                Character.query.filter_by(word_id=word.id)
+                .order_by(Character.id.asc())
+                .all()
+            )
+            if word_chars:
+                blanked_char = word_chars[-1].character
+                kept_prefix = ''.join(c.character for c in word_chars[:-1])
+            else:
+                blanked_char = base_hanzi
+                kept_prefix = ''
+
+            sentence_placeholder = example.sentence.replace(
+                base_hanzi, f'{kept_prefix} ( ) ', 1
+            )
+            # 例句里找不到该词形时无法挖空，宁可不出这道题，也不要出一道
+            # 无处填写、学习者必然答错的题去污染正确率数据。
+            if sentence_placeholder != example.sentence:
+                questions.append({
+                    'id': f'sentence-{word.id}-1',
+                    'type': 'fill_word',
+                    'question': sentence_placeholder,
+                    'options': [],
+                    'correctAnswer': blanked_char,
+                    'feedback': f"例句：{example.sentence}；翻译：{example.translation}"
+                })
+            else:
+                print(f"⚠️  词 {word.id}（{base_hanzi}）的例句不含该词形，跳过填词题")
 
     questions = questions[:question_limit]
 
@@ -1700,12 +1833,58 @@ def ensure_user_profile_columns():
     conn.commit()
     conn.close()
 
+
+def ensure_learning_event_columns():
+    """把老库里 learning_event 的 target 列重命名为 event_target。
+
+    历史上 scripts/simple_test_data.py 会用 target 建表，而 models_extended.py 与
+    真实生产库用的是 event_target。两种列名的库并存时，另一方的写入必然 500。
+    """
+    conn = sqlite3.connect(_db_path)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("PRAGMA table_info(learning_event)")
+        columns = {row[1] for row in cursor.fetchall()}
+        if columns and 'target' in columns and 'event_target' not in columns:
+            cursor.execute("ALTER TABLE learning_event RENAME COLUMN target TO event_target")
+            conn.commit()
+            print("   ➕ 已将 learning_event.target 重命名为 event_target")
+    except sqlite3.Error as e:
+        print(f"⚠️  learning_event 列名迁移失败: {e}")
+    finally:
+        conn.close()
+
+
+def ensure_user_progress_unique_index():
+    """给已存在的 user_progress 表补 (user_id, word_id) 唯一索引。
+
+    db.create_all() 不会修改已存在的表，所以模型上的 UniqueConstraint 对老库无效；
+    没有这个索引，并发写入会产生重复进度行，特征累加就会被拆散到多行上。
+    """
+    conn = sqlite3.connect(_db_path)
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_user_progress_user_word "
+            "ON user_progress (user_id, word_id)"
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        # 老库里已有重复的 (user_id, word_id)，需要人工合并后再建索引
+        print("⚠️  user_progress 存在重复的 (user_id, word_id)，唯一索引未创建")
+    except sqlite3.Error as e:
+        print(f"⚠️  创建 user_progress 唯一索引失败: {e}")
+    finally:
+        conn.close()
+
 def initialize_database():
     """初始化数据库和测试数据"""
     try:
         with app.app_context():
             db.create_all()
             ensure_user_profile_columns()
+            ensure_learning_event_columns()
+            ensure_user_progress_unique_index()
             print("✅ 数据库表创建成功")
             
             # 检查是否需要添加初始数据

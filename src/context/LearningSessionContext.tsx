@@ -13,6 +13,11 @@ export interface LearningSessionState {
 /* eslint-disable @typescript-eslint/no-unused-vars, no-unused-vars */
 interface LearningSessionContextValue {
   session: LearningSessionState;
+  /**
+   * localStorage 是否已读入。首帧为 false（SSR 一致性要求），挂载后置 true。
+   * 追踪器要等它变 true 再创建，否则会先带着空 vksLevel 建一次会话。
+   */
+  hydrated: boolean;
   updateSession(session: Partial<LearningSessionState>): void;
   clearSession(): void;
 }
@@ -74,6 +79,7 @@ export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({
   // 初始值必须与 SSR 一致（不读 localStorage），挂载后由下方 effect 加载存储值，
   // 否则老用户带着存储的会话回访时会触发 React 水合错误
   const [session, setSession] = useState<LearningSessionState>(DEFAULT_SESSION);
+  const [hydrated, setHydrated] = useState(false);
   const saveTimerRef = useRef<TimerRef>(null);
   const userIdRef = useRef(userId);
 
@@ -86,6 +92,7 @@ export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({
   useEffect(() => {
     const localSession = loadSessionFromStorage(userId);
     setSession(localSession);
+    setHydrated(true);
 
     // Async: fetch from backend and use if newer
     fetchLearningState(userId)
@@ -139,9 +146,15 @@ export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({
   const updateSession = useCallback((partial: Partial<LearningSessionState>) => {
     setSession(prev => {
       const timestamp = partial.lastUpdated ?? new Date().toISOString();
+      // 丢掉值为 undefined 的键：展开运算符会让显式的 undefined 覆盖掉已有值，
+      // 复习/推荐入口传 { vksLevel: undefined } 时会把用户的 VKS 自评抹成 null，
+      // 学习会话的 initial_level 于是又全写成 NULL。要清空请显式传 null。
+      const defined = Object.fromEntries(
+        Object.entries(partial).filter(([, value]) => value !== undefined)
+      ) as Partial<LearningSessionState>;
       const next: LearningSessionState = {
         ...prev,
-        ...partial,
+        ...defined,
         lastUpdated: timestamp
       };
       persistSessionToStorage(userIdRef.current, next);
@@ -175,9 +188,10 @@ export const LearningSessionProvider: React.FC<React.PropsWithChildren<{}>> = ({
 
   const value = useMemo<LearningSessionContextValue>(() => ({
     session,
+    hydrated,
     updateSession,
     clearSession
-  }), [session, updateSession, clearSession]);
+  }), [session, hydrated, updateSession, clearSession]);
 
   return (
     <LearningSessionContext.Provider value={value}>

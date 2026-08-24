@@ -9,7 +9,7 @@ import { useComprehensiveTracking } from "@/hooks/useTimeTracking";
 import AudioPlayer from "@/components/AudioPlayer";
 
 export default function Component() {
-  const { session: learningSession, updateSession: updateLearningSession } =
+  const { session: learningSession, hydrated: sessionHydrated, updateSession: updateLearningSession } =
     useLearningSession();
   const { word, loading, error } = useWordData({
     initialWordId: learningSession.wordId ?? undefined,
@@ -21,7 +21,9 @@ export default function Component() {
     userId,
     wordId: learningSession.wordId ?? 1,
     moduleType: 'character',
-    sessionType: 'learning'
+    sessionType: 'learning',
+    initialLevel: learningSession.vksLevel ?? undefined,
+    ready: sessionHydrated
   });
   const { pageTracking, interactionTracking, trackEvent } = tracking;
 
