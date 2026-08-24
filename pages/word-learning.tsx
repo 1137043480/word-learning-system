@@ -10,7 +10,7 @@ import ReviewReminder from '@/components/ReviewReminder';
 import AudioPlayer from '@/components/AudioPlayer';
 
 export default function Component() {
-  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
+  const { session: learningSession, hydrated: sessionHydrated, updateSession: updateLearningSession } = useLearningSession();
   const { userId } = useLearningContext();
   const { word, loading, error } = useWordData({ initialWordId: learningSession.wordId ?? undefined });
   const { previous, next, goTo } = useLearningNavigation('word');
@@ -20,7 +20,9 @@ export default function Component() {
     userId,
     wordId: learningSession.wordId ?? 1,
     moduleType: 'word',
-    sessionType: 'learning'
+    sessionType: 'learning',
+    initialLevel: learningSession.vksLevel ?? undefined,
+    ready: sessionHydrated
   });
   const { pageTracking, interactionTracking, trackEvent } = tracking;
 

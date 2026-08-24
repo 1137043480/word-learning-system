@@ -24,6 +24,14 @@ export const useTimeTracking = (config: TimeTrackingConfig): UseTimeTrackingRetu
   const [sessionInfo, setSessionInfo] = useState<any>(null);
 
   useEffect(() => {
+    // 等会话状态从 localStorage 水合完毕再建追踪器。
+    // TimeTracker 的构造函数会立刻发 startSession，提前创建会先写出一条
+    // initial_level 为 NULL 的会话，随后水合又把它 end 掉再建一条，
+    // 每次整页加载凭空多出 0 秒的幽灵会话，污染「学习次数/总时长」统计。
+    if (config.ready === false) {
+      return;
+    }
+
     // 开始追踪
     trackerRef.current = new TimeTracker(config);
     setIsTracking(true);
@@ -36,15 +44,19 @@ export const useTimeTracking = (config: TimeTrackingConfig): UseTimeTrackingRetu
     }, 5000); // 每5秒更新一次
 
     return () => {
-      // 组件卸载时结束追踪
+      // 组件卸载时结束追踪。dispose() 必须调用，否则旧实例被 document/window
+      // 的监听器强引用而无法回收，还会在 beforeunload 时重复上报
       if (trackerRef.current) {
         trackerRef.current.endSession(true);
+        trackerRef.current.dispose();
         trackerRef.current = null;
       }
       setIsTracking(false);
       clearInterval(interval);
     };
-  }, [config.userId, config.wordId, config.moduleType, config.sessionType]);
+    // 依赖里放 ready 而不是 initialLevel：档位只在 ready 翻转的那一次被读取，
+    // 之后档位再变化也不重建追踪器（否则每变一次就多一条幽灵会话）。
+  }, [config.userId, config.wordId, config.moduleType, config.sessionType, config.ready]);
 
   const trackEvent = useCallback((eventType: string, target?: string, data?: any) => {
     if (trackerRef.current) {

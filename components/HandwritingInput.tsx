@@ -6,7 +6,6 @@ import { Eraser, RotateCcw, Check, X } from 'lucide-react';
 interface HandwritingInputProps {
   onSubmit: (text: string) => void;
   onCancel?: () => void;
-  expectedAnswer?: string;
   placeholder?: string;
   width?: number;
   height?: number;
@@ -23,7 +22,6 @@ interface HandwritingInputProps {
 export default function HandwritingInput({
   onSubmit,
   onCancel,
-  expectedAnswer,
   placeholder = '请在此处手写或输入',
   width = 300,
   height = 150,
@@ -67,13 +65,14 @@ export default function HandwritingInput({
         setKeyboardInput('');
       }
     } else {
-      // 手写模式 - 简化版：直接要求用户确认输入内容
+      // 手写模式 - 简化版：让用户自己录入所写内容
       // 在实际应用中，这里应该调用OCR API
       if (!isEmpty) {
-        // 简化方案：弹出对话框让用户确认识别结果
-        const userInput = prompt('请确认您手写的内容：', expectedAnswer || '');
-        if (userInput) {
-          onSubmit(userInput);
+        // 注意：绝不能把正确答案作为默认值预填，否则用户直接确认即判对，
+        // 填空题将不再采集任何有效作答信号（is_correct 恒为 true）。
+        const userInput = prompt('请输入您刚才手写的内容：');
+        if (userInput && userInput.trim()) {
+          onSubmit(userInput.trim());
           handleClear();
         }
       }

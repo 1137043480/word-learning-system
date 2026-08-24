@@ -20,12 +20,23 @@ const DEFAULT_WORD_NAME = '发生';
 type ExerciseType = ExerciseQuestionPayload['type'];
 type ExerciseQuestion = ExerciseQuestionPayload;
 
+/**
+ * 归一化作答后再比对：去首尾空白、全角转半角、英文统一小写。
+ * 只吸收输入法差异，不放宽正确性判定。
+ */
+const normaliseAnswer = (value: string): string =>
+  value
+    .trim()
+    .replace(/[！-～]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/　/g, ' ')
+    .toLowerCase();
+
 const Exercise = () => {
   const router = useRouter();
   const isReviewMode = router.query.mode === 'review';
   const isTestMode = router.query.mode === 'test';
   const { userId } = useLearningContext();
-  const { session: learningSession, updateSession: updateLearningSession } = useLearningSession();
+  const { session: learningSession, hydrated: sessionHydrated, updateSession: updateLearningSession } = useLearningSession();
   const initialWordId = learningSession.wordId ?? DEFAULT_WORD_ID;
   const initialWordLabel = learningSession.word ?? DEFAULT_WORD_NAME;
   const { previous, next, goTo } = useLearningNavigation('exercise');
@@ -60,7 +71,9 @@ const Exercise = () => {
     userId,
     wordId,
     moduleType: 'exercise',
-    sessionType: 'exercise'
+    sessionType: 'exercise',
+    initialLevel: learningSession.vksLevel ?? undefined,
+    ready: sessionHydrated
   });
   const { trackPageEnter, trackPageLeave } = pageTracking;
   const { trackButtonClick, trackSelectionChange, trackAudioPlay } = interactionTracking;
@@ -237,12 +250,9 @@ const Exercise = () => {
     
     if (currentQuestion.type === 'fill_word') {
       userAnswer = fillInAnswer.trim();
-      // 填空题：检查答案是否匹配（支持部分匹配和大小写不敏感）
-      const correctAnswer = currentQuestion.correctAnswer.toLowerCase();
-      const userAnswerLower = userAnswer.toLowerCase();
-      correct = correctAnswer === userAnswerLower || 
-                correctAnswer.includes(userAnswerLower) || 
-                userAnswerLower.includes(correctAnswer);
+      // 填空题：严格相等比对。此前用双向子串匹配，正确答案「改变」时只写「改」、
+      // 正确答案 'happen; occur' 时只输入 'a' 都会判对，正确率被系统性高估。
+      correct = normaliseAnswer(userAnswer) === normaliseAnswer(currentQuestion.correctAnswer);
     } else {
       userAnswer = selectedOption;
       correct = selectedOption === currentQuestion.correctAnswer;
@@ -455,7 +465,6 @@ const Exercise = () => {
                               }
                             }, 50);
                           }}
-                          expectedAnswer={currentQuestion.correctAnswer}
                           placeholder=""
                           width={260}
                           height={90}

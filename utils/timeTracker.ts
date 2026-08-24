@@ -10,6 +10,17 @@ export interface TimeTrackingConfig {
   wordId: number;
   moduleType: string; // 'entrance', 'character', 'word', 'collocation', 'sentence', 'exercise'
   sessionType: string; // 'learning', 'exercise', 'review', 'test'
+  /**
+   * 学习者在入口页对本词自评的 VKS 档位（A-E）。
+   * 后端 learning_session.initial_level 早已就位，但此前前端从不发送，
+   * 该列恒为 NULL，论文表 4.3 的头 5 个特征因此没有数据源。
+   */
+  initialLevel?: string;
+  /**
+   * 会话状态是否已从 localStorage 水合完毕。为 false 时 useTimeTracking 不创建
+   * 追踪器——提前创建会先写出 initial_level 为 NULL 的幽灵会话。
+   */
+  ready?: boolean;
 }
 
 export interface LearningEvent {
@@ -34,6 +45,20 @@ export interface ExerciseData {
 }
 
 export class TimeTracker {
+  /** 待发送事件队列的长度上限，防止后端持续失败时无限堆积 */
+  private static readonly MAX_QUEUED_EVENTS = 500;
+
+  /** 用于判定「用户仍在活动」的 DOM 事件 */
+  private static readonly ACTIVITY_EVENTS = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+
+  // 监听器必须持有稳定引用才能被 removeEventListener 摘掉
+  private readonly boundVisibilityChange = this.handleVisibilityChange.bind(this);
+  private readonly boundUserActivity = this.handleUserActivity.bind(this);
+  private readonly boundPageUnload = this.handlePageUnload.bind(this);
+
+  /** 会话是否已结束，防止同一 sessionId 被 end 两次 */
+  private ended: boolean = false;
+
   private sessionId: string;
   private startTime: Date;
   private activeTime: number = 0;
@@ -69,24 +94,45 @@ export class TimeTracker {
   private initializeTracking() {
     // 页面可见性监听
     if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
-      
+      document.addEventListener('visibilitychange', this.boundVisibilityChange);
+
       // 用户活动监听
-      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-        document.addEventListener(event, this.handleUserActivity.bind(this), true);
+      TimeTracker.ACTIVITY_EVENTS.forEach(event => {
+        document.addEventListener(event, this.boundUserActivity, true);
       });
-      
+
       // 页面卸载监听
-      window.addEventListener('beforeunload', this.handlePageUnload.bind(this));
+      window.addEventListener('beforeunload', this.boundPageUnload);
     }
-    
+
     // 开始学习会话
     this.startSession();
-    
+
     // 设置批量事件发送定时器
     this.batchEventTimer = setInterval(() => {
       this.sendBatchEvents();
     }, 30000); // 每30秒发送一次批量事件
+  }
+
+  /**
+   * 解绑全部监听器并停掉定时器。
+   * 此前监听器用的是 .bind(this) 生成的匿名函数且从不移除，每次重建追踪器都会
+   * 留下一个被 document/window 强引用的僵尸实例：它仍在处理每一次 mousemove，
+   * 并会在 beforeunload 时把已正常结束的会话重新改写成 completed=false。
+   */
+  dispose() {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.boundVisibilityChange);
+      TimeTracker.ACTIVITY_EVENTS.forEach(event => {
+        document.removeEventListener(event, this.boundUserActivity, true);
+      });
+      window.removeEventListener('beforeunload', this.boundPageUnload);
+    }
+
+    if (this.batchEventTimer) {
+      clearInterval(this.batchEventTimer);
+      this.batchEventTimer = null;
+    }
   }
 
   private async startSession() {
@@ -100,6 +146,7 @@ export class TimeTracker {
           wordId: this.config.wordId,
           sessionType: this.config.sessionType,
           moduleType: this.config.moduleType,
+          initialLevel: this.config.initialLevel,
           startTime: this.startTime.toISOString(),
           deviceType: this.getDeviceType()
         })
@@ -211,6 +258,12 @@ export class TimeTracker {
    * 结束学习会话
    */
   public async endSession(completed: boolean = true) {
+    // 幂等：僵尸实例的 beforeunload 会重复调用，把已结束的会话改写成未完成
+    if (this.ended) {
+      return;
+    }
+    this.ended = true;
+
     const endTime = new Date();
     const totalDuration = Math.round((endTime.getTime() - this.startTime.getTime()) / 1000);
     const activeDuration = Math.round(this.activeTime / 1000);
@@ -302,12 +355,29 @@ export class TimeTracker {
       } else {
         console.error('❌ Failed to send batch events:', result.error);
         // 发送失败则重新加回队列
-        this.events = [...eventsToSend, ...this.events];
+        this.requeueFailed(eventsToSend);
       }
     } catch (error) {
       console.error('❌ Failed to send batch events:', error);
       // 网络错误也重新加回队列
-      this.events = [...eventsToSend, ...this.events];
+      this.requeueFailed(eventsToSend);
+    }
+  }
+
+  /**
+   * 把发送失败的事件放回队列头部，并限制队列长度。
+   * 后端持续报错时（如 5xx）定时器会不断重发，无上限会让队列无限膨胀。
+   * 超出上限时丢弃最旧的事件——新事件对分析更有价值。
+   */
+  private requeueFailed(failedEvents: LearningEvent[]) {
+    const merged = [...failedEvents, ...this.events];
+    const overflow = merged.length - TimeTracker.MAX_QUEUED_EVENTS;
+
+    if (overflow > 0) {
+      console.warn(`⚠️ 事件队列超过 ${TimeTracker.MAX_QUEUED_EVENTS} 条上限，丢弃最旧的 ${overflow} 条`);
+      this.events = merged.slice(overflow);
+    } else {
+      this.events = merged;
     }
   }
 

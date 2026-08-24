@@ -3,17 +3,30 @@
 简化版测试数据生成脚本
 """
 
+import os
 import sqlite3
 import random
 from datetime import datetime, timedelta
 import json
 
+
+def _resolve_db_path():
+    """与 app_phase 用同一个库。
+
+    此前这里硬编码相对路径 'words_extended.db'，无视 WORDS_DB_PATH——
+    任何指向临时库的测试或全新库启动，都会把模拟数据灌进仓库里的真实库。
+    """
+    return os.environ.get('WORDS_DB_PATH', 'words_extended.db')
+
+
 def generate_simple_test_data():
     """生成简单的测试数据"""
     print("🚀 生成简化版测试数据...")
-    
+
     # 连接数据库
-    conn = sqlite3.connect('words_extended.db')
+    db_path = _resolve_db_path()
+    print(f"   目标库: {db_path}")
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
     try:
@@ -119,13 +132,14 @@ def generate_simple_test_data():
                 datetime.now(), datetime.now()
             ))
         
-        # 5. 生成学习事件（表结构与 app_phase.LearningEvent 一致）
+        # 5. 生成学习事件（列名须与 app_phase.LearningEvent 映射的 event_target 一致，
+        #    写成 target 会让全新库的种子生成整批失败）
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS learning_event (
                 id INTEGER PRIMARY KEY,
                 session_id VARCHAR(100) NOT NULL,
                 event_type VARCHAR(50) NOT NULL,
-                target VARCHAR(100),
+                event_target VARCHAR(100),
                 event_data TEXT,
                 page_url VARCHAR(200),
                 timestamp DATETIME NOT NULL,
@@ -141,7 +155,7 @@ def generate_simple_test_data():
 
             cursor.execute("""
                 INSERT OR REPLACE INTO learning_event
-                (session_id, event_type, target, event_data, page_url, timestamp, created_at)
+                (session_id, event_type, event_target, event_data, page_url, timestamp, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
                 session_id, event_data['event_type'], 'target_element',
