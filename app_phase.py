@@ -1864,10 +1864,10 @@ def ensure_user_progress_unique_index():
     conn = sqlite3.connect(_db_path)
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            "CREATE UNIQUE INDEX IF NOT EXISTS uq_user_progress_user_word "
-            "ON user_progress (user_id, word_id)"
-        )
+        cursor.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS uq_user_progress_user_word
+            ON user_progress (user_id, word_id)
+        """)
         conn.commit()
     except sqlite3.IntegrityError:
         # 老库里已有重复的 (user_id, word_id)，需要人工合并后再建索引
